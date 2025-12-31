@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Calhas Norte - Software Service</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calhas Norte - Sistema de Gestão</title>
+    
+    <!-- Bibliotecas de Estilo e Ícones -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        accent: {
+                            500: '#f97316',
+                        },
+                        success: {
+                            500: '#22c55e',
+                            100: '#dcfce7',
+                            800: '#166534'
+                        },
+                        danger: {
+                            500: '#ef4444',
+                            100: '#fee2e2',
+                            800: '#991b1b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .kanban-col::-webkit-scrollbar { width: 4px; }
+        .kanban-col::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden" x-data="appData()" x-cloak>
+
+    <!-- Tela de Login (Overlay) -->
+    <div x-show="!isLoggedIn" x-transition.opacity.duration.500ms class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border-t-4 border-brand-600">
+            <div class="text-center mb-8 flex flex-col items-center">
+                <!-- Logo no Login -->
+                <div class="w-32 h-32 mb-4 flex items-center justify-center">
+                    <img src="image_a49767.png" alt="Calhas Norte" class="object-contain max-w-full max-h-full" 
+                         onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'inline-flex items-center justify-center w-24 h-24 rounded-full bg-brand-100\'><i data-lucide=\'hammer\' class=\'w-12 h-12 text-brand-600\'></i></div>'">
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800">Calhas Norte</h1>
+                <p class="text-slate-500 text-sm">Sistema de Gestão de Obras</p>
+            </div>
+            
+            <form @submit.prevent="login">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                    <input type="email" x-model="loginForm.email" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition" placeholder="admin@calhasnorte.com.br" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Senha</label>
+                    <input type="password" x-model="loginForm.password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-lg transition shadow-lg transform hover:-translate-y-0.5 flex justify-center items-center gap-2" :disabled="isLoading">
+                    <span x-show="!isLoading">Entrar no Sistema</span>
+                    <span x-show="isLoading" class="animate-spin"><i data-lucide="loader-2"></i></span>
+                </button>
+                <p x-show="loginError" class="mt-4 text-center text-red-500 text-sm font-medium" x-text="loginError"></p>
+                <p class="mt-4 text-center text-xs text-slate-400" x-show="!isConfigured">(Conectando ao Firebase...)</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Layout Principal -->
+    <div x-show="isLoggedIn" class="flex w-full h-full">
+        
+        <!-- Sidebar -->
+        <div x-show="sidebarOpen || window.innerWidth >= 1024" 
+             @click.away="if(window.innerWidth < 1024) sidebarOpen = false"
+             class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white transform lg:transform-none lg:static sidebar-transition flex flex-col"
+             :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen && window.innerWidth < 1024}">
+            
+            <div class="h-20 flex items-center px-6 bg-slate-800 border-b border-slate-700">
+                <div class="flex items-center gap-3 w-full">
+                    <!-- Logo na Sidebar -->
+                    <div class="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-white rounded-lg p-1">
+                        <img src="image_a49767.png" alt="Logo" class="object-contain max-w-full max-h-full"
+                             onerror="this.onerror=null; this.parentElement.innerHTML='<i data-lucide=\'hammer\' class=\'w-6 h-6 text-brand-600\'></i>'">
+                    </div>
+                    <span class="font-bold text-lg tracking-tight truncate">Calhas<span class="text-brand-400">Norte</span></span>
+                </div>
+                <button @click="sidebarOpen = false" class="ml-auto lg:hidden text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
+                <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Comercial & Obras</p>
+                
+                <a href="#" @click.prevent="setView('kanban')" 
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                   :class="currentView === 'kanban' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                    <i data-lucide="trello" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'kanban' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                    Quadro de Serviços
+                </a>
+
+                <a href="#" @click.prevent="setView('list')" 
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                   :class="currentView === 'list' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                    <i data-lucide="list" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'list' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                    Lista de Serviços
+                </a>
+
+                <div class="mt-6">
+                    <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Gestão Interna</p>
+                    
+                    <a href="#" @click.prevent="setView('employees')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'employees' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="users" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'employees' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Funcionários
+                    </a>
+
+                    <a href="#" @click.prevent="setView('materials')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'materials' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="package" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'materials' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Matéria Prima
+                    </a>
+
+                    <a href="#" @click.prevent="setView('payables')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'payables' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="credit-card" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'payables' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Contas a Pagar
+                    </a>
+                </div>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800 bg-slate-900">
+                <button @click="logout" class="flex items-center w-full px-3 py-2 text-sm font-medium text-slate-300 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
+                    <i data-lucide="log-out" class="mr-3 h-5 w-5 text-slate-400"></i>
+                    Sair do Sistema
+                </button>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
+            
+            <!-- Header -->
+            <header class="bg-white border-b border-slate-200 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 shadow-sm z-30">
+                <div class="flex items-center">
+                    <button @click="sidebarOpen = true" class="lg:hidden text-slate-500 hover:text-brand-600 mr-4">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <h2 class="text-lg font-bold text-slate-800 sm:truncate" x-text="pageTitle"></h2>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button @click="openModal()" class="bg-accent-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i> 
+                        <span class="hidden sm:inline" x-text="addButtonText"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Área Principal -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
+                
+                <!-- KPIs (Apenas para views de Obras) -->
+                <div x-show="['kanban', 'list'].includes(currentView)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                     <div class="bg-white px-4 py-3 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="p-2 bg-blue-100 rounded text-blue-600"><i data-lucide="dollar-sign" class="w-5 h-5"></i></div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Potencial Total</p>
+                            <p class="font-bold text-slate-800" x-text="formatMoney(kpis.totalValue)"></p>
+                        </div>
+                     </div>
+                     <div class="bg-white px-4 py-3 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="p-2 bg-orange-100 rounded text-orange-600"><i data-lucide="hard-hat" class="w-5 h-5"></i></div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Em Obras</p>
+                            <p class="font-bold text-slate-800 text-lg" x-text="kpis.activeWorks"></p>
+                        </div>
+                     </div>
+                </div>
+
+                <!-- VIEW 1: KANBAN -->
+                <div x-show="currentView === 'kanban'" class="h-full flex flex-col">
+                    <div class="flex-1 overflow-x-auto pb-4">
+                        <div class="flex gap-4 min-w-[1200px] h-full">
+                            <template x-for="status in kanbanColumns" :key="status.id">
+                                <div class="flex-1 flex flex-col bg-slate-100 rounded-xl border border-slate-200 min-w-[280px] max-w-[320px]">
+                                    <div class="p-3 border-b border-slate-200 flex justify-between items-center sticky top-0 bg-slate-100 rounded-t-xl z-10">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full" :class="status.color"></div>
+                                            <h3 class="font-bold text-sm text-slate-700" x-text="status.label"></h3>
+                                            <span class="bg-white px-2 py-0.5 rounded-full text-xs font-bold text-slate-500 border border-slate-200" x-text="getItemsCount(status.id)">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-2 flex-1 overflow-y-auto kanban-col space-y-2">
+                                        <template x-for="item in getProjectsByStatus(status.id)" :key="item.id">
+                                            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition cursor-pointer group relative" @click="editItem(item)">
+                                                <div class="absolute left-0 top-3 bottom-3 w-1 rounded-r bg-brand-500"></div>
+                                                <div class="pl-2">
+                                                    <div class="flex justify-between items-start mb-1">
+                                                        <span class="text-xs font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded" x-text="item.serviceType"></span>
+                                                        <span class="text-xs text-slate-400" x-text="formatDate(item.createdAt)"></span>
+                                                    </div>
+                                                    <h4 class="font-bold text-slate-800 text-sm mb-0.5" x-text="item.clientName"></h4>
+                                                    <p class="text-xs text-slate-500 truncate mb-2 flex items-center gap-1">
+                                                        <i data-lucide="map-pin" class="w-3 h-3"></i> <span x-text="item.address || 'Sem endereço'"></span>
+                                                    </p>
+                                                    <div class="flex justify-between items-center pt-2 border-t border-slate-100 mt-2">
+                                                        <span class="font-bold text-sm text-slate-700" x-text="formatMoney(item.value)"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: LISTA DE OBRAS -->
+                <div x-show="currentView === 'list'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente / Endereço</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Serviço</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Data</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Valor</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200">
+                                <template x-for="item in projects" :key="item.id">
+                                    <tr class="hover:bg-slate-50 transition cursor-pointer" @click="editItem(item)">
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm font-medium text-slate-900" x-text="item.clientName"></div>
+                                            <div class="text-xs text-slate-500" x-text="item.address"></div>
+                                        </td>
+                                        <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-slate-100" x-text="item.serviceType"></span></td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full" :class="getStatusColor(item.status)" x-text="getStatusLabel(item.status)"></span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="formatDate(item.createdAt)"></td>
+                                        <td class="px-6 py-4 text-sm font-bold text-slate-700" x-text="formatMoney(item.value)"></td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VIEW 3: FUNCIONÁRIOS -->
+                <div x-show="currentView === 'employees'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nome / CPF</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cargo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Telefone</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Salário / Extra</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Funções Extras / Obs</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200">
+                                <template x-for="emp in employees" :key="emp.id">
+                                    <tr class="hover:bg-slate-50 transition cursor-pointer" @click="editItem(emp)">
+                                        <td class="px-6 py-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
+                                                  :class="emp.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                                                <span x-text="emp.isActive ? 'Ativo' : 'Inativo'"></span>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm font-medium text-slate-900" x-text="emp.name"></div>
+                                            <div class="text-xs text-slate-500" x-text="formatCPF(emp.cpf)"></div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-slate-700" x-text="emp.role"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="formatPhone(emp.phone)"></td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-xs text-slate-500">Salário: <span class="font-bold text-slate-700" x-text="formatMoney(emp.salary)"></span></div>
+                                            <div class="text-xs text-slate-500">Extra: <span class="font-bold text-success-600" x-text="formatMoney(emp.extraValue)"></span></div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 italic" x-text="emp.extras || '-'"></td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VIEW 4: MATÉRIA PRIMA -->
+                <div x-show="currentView === 'materials'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Item</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status / Data</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tipo/Categoria</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Qtd. Estoque</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Custo (Unit.)</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200">
+                                <template x-for="mat in materials" :key="mat.id">
+                                    <tr class="hover:bg-slate-50 transition cursor-pointer" @click="editItem(mat)">
+                                        <td class="px-6 py-4 font-medium text-slate-900" x-text="mat.name"></td>
+                                        <td class="px-6 py-4">
+                                            <span class="inline-flex text-xs leading-5 font-semibold rounded-full px-2" :class="mat.status === 'Pedido Feito' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'" x-text="mat.status || 'Em Estoque'"></span>
+                                            <div class="text-xs text-slate-400 mt-1" x-text="formatDateRaw(mat.orderDate)"></div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="mat.type"></td>
+                                        <td class="px-6 py-4 text-sm font-bold text-slate-700">
+                                            <span x-text="mat.quantity"></span> <span x-text="mat.unit" class="text-xs font-normal text-slate-400"></span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-slate-700" x-text="formatMoney(mat.cost)"></td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VIEW 5: CONTAS A PAGAR -->
+                <div x-show="currentView === 'payables'" class="space-y-4">
+                    <!-- Filtro de Mês -->
+                    <div class="flex items-center gap-4 bg-white p-3 rounded-lg shadow-sm border border-slate-200">
+                        <label class="text-sm font-bold text-slate-600">Filtrar Mês:</label>
+                        <input type="month" x-model="selectedMonth" class="border border-slate-300 rounded px-2 py-1 text-sm">
+                        
+                        <div class="ml-auto flex gap-4 text-sm">
+                            <div class="text-slate-500">Pendente: <span class="font-bold text-danger-500" x-text="formatMoney(filteredPayables.reduce((a,c) => !c.isPaid ? a + (parseFloat(c.amount)||0) : a, 0))"></span></div>
+                            <div class="text-slate-500">Pago: <span class="font-bold text-success-500" x-text="formatMoney(filteredPayables.reduce((a,c) => c.isPaid ? a + (parseFloat(c.amount)||0) : a, 0))"></span></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase w-10">Pago?</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Descrição</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Categoria</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Vencimento</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Valor</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-200">
+                                    <template x-for="bill in filteredPayables" :key="bill.id">
+                                        <tr class="hover:bg-slate-50 transition">
+                                            <td class="px-4 py-4 text-center">
+                                                <input type="checkbox" :checked="bill.isPaid" @click.prevent="togglePaid(bill)" class="w-5 h-5 text-brand-600 rounded focus:ring-brand-500 cursor-pointer">
+                                            </td>
+                                            <td class="px-6 py-4 cursor-pointer" @click="editItem(bill)">
+                                                <div class="font-medium text-slate-900" :class="{'line-through text-slate-400': bill.isPaid}" x-text="bill.description"></div>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-slate-500" x-text="bill.category"></td>
+                                            <td class="px-6 py-4 text-sm" :class="isOverdue(bill) ? 'text-red-600 font-bold' : 'text-slate-500'" x-text="formatDateRaw(bill.dueDate)"></td>
+                                            <td class="px-6 py-4 text-sm font-bold text-slate-700" x-text="formatMoney(bill.amount)"></td>
+                                            <td class="px-6 py-4 text-right">
+                                                <button @click="editItem(bill)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="filteredPayables.length === 0">
+                                        <td colspan="6" class="px-6 py-12 text-center text-slate-500">Nenhuma conta encontrada para este mês.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+        <!-- Modal Dinâmico -->
+        <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="showModal" x-transition.opacity class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" @click="closeModal()"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+                <div x-show="showModal" x-transition.scale class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
+                    
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
+                            <h3 class="text-lg leading-6 font-bold text-slate-900">
+                                <span x-text="isEditing ? 'Editar ' : 'Novo '"></span>
+                                <span x-text="modalTitle"></span>
+                            </h3>
+                            <button @click="closeModal()" class="text-slate-400 hover:text-slate-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+                        </div>
+                        
+                        <form @submit.prevent="saveItem" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            
+                            <!-- FORM: ORÇAMENTOS/PROJETOS -->
+                            <template x-if="modalType === 'project'">
+                                <div class="contents">
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cliente</label>
+                                        <input type="text" x-model="currentItem.clientName" class="w-full px-3 py-2 border rounded-lg" required>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Endereço</label>
+                                        <input type="text" x-model="currentItem.address" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone</label>
+                                        <input type="text" x-model="currentItem.phone" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Serviço</label>
+                                        <select x-model="currentItem.serviceType" class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="Calhas">Instalação de Calhas</option>
+                                            <option value="Rufos">Instalação de Rufos</option>
+                                            <option value="Completo">Calhas + Rufos</option>
+                                            <option value="Limpeza">Limpeza</option>
+                                            <option value="Outros">Outros</option>
+                                        </select>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição</label>
+                                        <textarea x-model="currentItem.description" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor (R$)</label>
+                                        <input type="number" step="0.01" x-model="currentItem.value" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+                                        <select x-model="currentItem.status" class="w-full px-3 py-2 border rounded-lg">
+                                            <template x-for="st in kanbanColumns" :key="st.id">
+                                                <option :value="st.id" x-text="st.label"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- FORM: FUNCIONÁRIOS -->
+                            <template x-if="modalType === 'employee'">
+                                <div class="contents">
+                                    <div class="sm:col-span-2 flex items-center gap-2 mb-2 p-2 bg-slate-50 rounded border">
+                                        <label class="text-sm font-bold text-slate-700">Situação Cadastral:</label>
+                                        <select x-model="currentItem.isActive" class="ml-auto px-2 py-1 border rounded text-sm" :class="currentItem.isActive == 'true' || currentItem.isActive === true ? 'text-green-700 border-green-300 bg-green-50' : 'text-red-700 border-red-300 bg-red-50'">
+                                            <option value="true">Ativo (No Quadro)</option>
+                                            <option value="false">Inativo (Desligado)</option>
+                                        </select>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome Completo</label>
+                                        <input type="text" x-model="currentItem.name" class="w-full px-3 py-2 border rounded-lg" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">CPF (Apenas números)</label>
+                                        <input type="text" x-model="currentItem.cpf" class="w-full px-3 py-2 border rounded-lg" placeholder="00000000000">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone</label>
+                                        <input type="text" x-model="currentItem.phone" class="w-full px-3 py-2 border rounded-lg" placeholder="11999999999">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cargo</label>
+                                        <input type="text" x-model="currentItem.role" class="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Instalador Sênior">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Salário Base</label>
+                                        <input type="number" step="0.01" x-model="currentItem.salary" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Extra (Obras)</label>
+                                        <input type="number" step="0.01" x-model="currentItem.extraValue" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Funções Extras / Obs</label>
+                                        <textarea x-model="currentItem.extras" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- FORM: MATÉRIA PRIMA -->
+                            <template x-if="modalType === 'material'">
+                                <div class="contents">
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Item</label>
+                                        <input type="text" x-model="currentItem.name" class="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Chapa Galvanizada 28" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+                                        <select x-model="currentItem.status" class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="Em Estoque">Em Estoque</option>
+                                            <option value="Pedido Feito">Pedido Feito</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data do Pedido</label>
+                                        <input type="date" x-model="currentItem.orderDate" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo/Categoria</label>
+                                        <select x-model="currentItem.type" class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="Chapas">Chapas</option>
+                                            <option value="Acessórios">Acessórios (Rebite, Parafuso)</option>
+                                            <option value="Selantes">Selantes / PU</option>
+                                            <option value="Ferramentas">Ferramentas</option>
+                                            <option value="Outros">Outros</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Quantidade</label>
+                                        <input type="number" x-model="currentItem.quantity" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Unidade</label>
+                                        <select x-model="currentItem.unit" class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="un">Unidade (un)</option>
+                                            <option value="kg">Quilo (kg)</option>
+                                            <option value="m">Metro (m)</option>
+                                            <option value="m2">Metro Quadrado (m²)</option>
+                                            <option value="cx">Caixa</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Custo / Valor Pago</label>
+                                        <input type="number" step="0.01" x-model="currentItem.cost" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00">
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- FORM: CONTAS A PAGAR -->
+                            <template x-if="modalType === 'payable'">
+                                <div class="contents">
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição</label>
+                                        <input type="text" x-model="currentItem.description" class="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Conta de Luz" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Categoria</label>
+                                        <select x-model="currentItem.category" class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="Fixa">Despesa Fixa (Água/Luz)</option>
+                                            <option value="Salario">Salários</option>
+                                            <option value="ExtraSalario">Valor Extra - Salário</option>
+                                            <option value="Vale">Vale (Adiantamento)</option>
+                                            <option value="Emprestimo">Empréstimos</option>
+                                            <option value="Fornecedor">Fornecedor</option>
+                                            <option value="Extra">Extra</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor</label>
+                                        <input type="number" step="0.01" x-model="currentItem.amount" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data de Vencimento</label>
+                                        <input type="date" x-model="currentItem.dueDate" class="w-full px-3 py-2 border rounded-lg" required>
+                                    </div>
+                                    <div x-show="!isEditing" class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Repetir por (meses)</label>
+                                        <input type="number" x-model="currentItem.repeatCount" min="1" max="24" class="w-full px-3 py-2 border rounded-lg" placeholder="1">
+                                        <p class="text-xs text-slate-400 mt-1">Deixe 1 para apenas este mês.</p>
+                                    </div>
+                                    <div class="sm:col-span-2 flex items-center gap-2">
+                                        <input type="checkbox" x-model="currentItem.isPaid" class="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500">
+                                        <label class="text-sm text-slate-700">Conta já está paga</label>
+                                    </div>
+                                </div>
+                            </template>
+
+                        </form>
+                    </div>
+
+                    <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                        <button @click="saveItem" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-brand-600 text-base font-medium text-white hover:bg-brand-700 sm:ml-3 sm:w-auto sm:text-sm">
+                            <span x-show="!isSaving">Salvar</span>
+                            <span x-show="isSaving" class="animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></span>
+                        </button>
+                        <button x-show="isEditing" @click="deleteItem" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-red-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-red-700 hover:bg-red-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Excluir</button>
+                        <button @click="closeModal()" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/module.esm.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // Importando signInWithEmailAndPassword explicitamente
+        import { getAuth, signInWithCustomToken, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuração do Firebase específica do projeto
+        const customFirebaseConfig = {
+            apiKey: "AIzaSyCUxljZq9E_RaB8m2rQUKPO5Y6huff9Bwk",
+            authDomain: "calhas-norte.firebaseapp.com",
+            projectId: "calhas-norte",
+            storageBucket: "calhas-norte.firebasestorage.app",
+            messagingSenderId: "919412431262",
+            appId: "1:919412431262:web:cff37bcc0c08f765aade8f"
+        };
+
+        const isCanvasEnv = typeof __firebase_config !== 'undefined';
+        
+        let app, auth, db, appId;
+
+        try {
+            const configToUse = customFirebaseConfig; 
+            app = initializeApp(configToUse);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            appId = 'calhas-norte-app'; 
+        } catch (e) { console.error("Firebase Init Error", e); }
+
+        // Funções Auxiliares de Coleção
+        const getCollectionPath = (type) => {
+            const root = 'dados_sistema'; 
+            if(type === 'project') return `${root}/obras/orcamentos`;
+            if(type === 'employee') return `${root}/rh/funcionarios`;
+            if(type === 'material') return `${root}/estoque/materiais`;
+            if(type === 'payable') return `${root}/financeiro/contas`;
+            return `${root}/geral/itens`;
+        }
+
+        const appData = () => ({
+            isLoggedIn: false,
+            isLoading: false,
+            isSaving: false,
+            loginError: '',
+            isCanvasEnv: isCanvasEnv,
+            isConfigured: !!app,
+            loginForm: { email: '', password: '' },
+            
+            // View State
+            currentView: 'kanban', 
+            sidebarOpen: false,
+            selectedMonth: new Date().toISOString().slice(0, 7), // YYYY-MM
+            
+            // Data Arrays
+            projects: [],
+            employees: [],
+            materials: [],
+            payables: [],
+            
+            // Modal State
+            showModal: false,
+            isEditing: false,
+            modalType: 'project', 
+            currentItem: {},
+
+            // Kanban Config
+            kanbanColumns: [
+                { id: 'lead', label: 'Novos Contatos', color: 'bg-slate-300' },
+                { id: 'visita', label: 'Visita Agendada', color: 'bg-yellow-400' },
+                { id: 'orcamento', label: 'Orçamento Enviado', color: 'bg-blue-400' },
+                { id: 'aprovado', label: 'Em Produção', color: 'bg-orange-500' },
+                { id: 'instalacao', label: 'Instalação Agendada', color: 'bg-purple-500' },
+                { id: 'concluido', label: 'Concluído', color: 'bg-green-500' }
+            ],
+
+            // Computeds
+            get kpis() {
+                return {
+                    totalValue: this.projects.reduce((acc, item) => acc + (parseFloat(item.value) || 0), 0),
+                    activeWorks: this.projects.filter(i => ['aprovado', 'instalacao'].includes(i.status)).length
+                }
+            },
+            
+            get filteredPayables() {
+                return this.payables.filter(p => p.dueDate && p.dueDate.startsWith(this.selectedMonth))
+                                    .sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+            },
+
+            get pageTitle() {
+                const map = {
+                    'kanban': 'Quadro de Serviços', 'list': 'Lista de Serviços',
+                    'employees': 'Gestão de Funcionários', 'materials': 'Estoque de Matéria Prima',
+                    'payables': 'Contas a Pagar'
+                };
+                return map[this.currentView];
+            },
+
+            get modalTitle() {
+                const map = {
+                    'project': 'Orçamento', 'employee': 'Funcionário',
+                    'material': 'Item', 'payable': 'Conta'
+                };
+                return map[this.modalType];
+            },
+
+            get addButtonText() {
+                const map = {
+                    'kanban': 'Novo Orçamento', 'list': 'Novo Orçamento',
+                    'employees': 'Novo Funcionário', 'materials': 'Novo Material',
+                    'payables': 'Nova Conta'
+                };
+                return map[this.currentView];
+            },
+
+            init() {
+                this.checkAuth();
+                this.$watch('currentView', () => setTimeout(() => lucide.createIcons(), 100));
+            },
+            
+            setView(view) {
+                this.currentView = view;
+                this.sidebarOpen = false;
+            },
+
+            // --- AUTH ---
+            checkAuth() {
+                if (auth) {
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) { this.isLoggedIn = true; this.loadAllData(); } 
+                        else { this.isLoggedIn = false; }
+                    });
+                }
+            },
+
+            async login() {
+                this.isLoading = true;
+                this.loginError = '';
+                try {
+                    if (auth) {
+                        // Lógica prioritária: Email/Senha
+                        if (this.loginForm.email && this.loginForm.password) {
+                            await signInWithEmailAndPassword(auth, this.loginForm.email, this.loginForm.password);
+                        } else {
+                            // Fallback para Anônimo se campos vazios (Demo)
+                            await signInAnonymously(auth);
+                        }
+                    } else {
+                        // Mock
+                        await new Promise(r => setTimeout(r, 800));
+                        this.isLoggedIn = true;
+                        this.loadAllData();
+                    }
+                } catch (e) { 
+                    console.error("Login Error:", e);
+                    // Tradução amigável dos erros
+                    if (e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
+                        this.loginError = "Email ou senha incorretos.";
+                    } else if (e.code === 'auth/operation-not-allowed') {
+                        this.loginError = "Método de login não habilitado no Firebase Console.";
+                    } else if (e.code === 'auth/too-many-requests') {
+                        this.loginError = "Muitas tentativas. Tente novamente mais tarde.";
+                    } else {
+                        this.loginError = "Erro ao entrar: " + e.message;
+                    }
+                } 
+                finally { this.isLoading = false; }
+            },
+
+            async logout() {
+                if (auth) await signOut(auth);
+                this.isLoggedIn = false;
+                this.projects = []; this.employees = []; this.materials = []; this.payables = [];
+            },
+
+            // --- DATA LOADING ---
+            loadAllData() {
+                this.loadCollection('project', 'projects');
+                this.loadCollection('employee', 'employees');
+                this.loadCollection('material', 'materials');
+                this.loadCollection('payable', 'payables');
+            },
+
+            loadCollection(type, arrayName) {
+                if (db) {
+                    const collectionName = type === 'project' ? 'orcamentos' : 
+                                           type === 'employee' ? 'funcionarios' :
+                                           type === 'material' ? 'materiais' : 'financeiro';
+                    
+                    const q = query(collection(db, collectionName));
+                    onSnapshot(q, (snapshot) => {
+                        this[arrayName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        setTimeout(() => lucide.createIcons(), 100);
+                    });
+                } else {
+                    this.loadMockData(arrayName);
+                }
+            },
+
+            loadMockData(arrayName) {
+                const mocks = {
+                    'projects': [{ id: 1, clientName: 'Padaria Central', status: 'aprovado', value: 1500, createdAt: {seconds: Date.now()/1000}, serviceType: 'Calhas' }],
+                    'employees': [{ id: 1, name: 'João Silva', isActive: true, cpf: '12345678900', role: 'Instalador', phone: '119999999', salary: 2500, extraValue: 150 }],
+                    'materials': [{ id: 1, name: 'Chapa Galv. 28', status: 'Em Estoque', orderDate: '2023-10-01', type: 'Chapas', quantity: 50, unit: 'm', cost: 45.00 }],
+                    'payables': [{ id: 1, description: 'Conta de Luz', category: 'Fixa', amount: 350.50, dueDate: this.selectedMonth + '-15', isPaid: false }]
+                };
+                if(this[arrayName].length === 0) this[arrayName] = mocks[arrayName] || [];
+            },
+
+            // --- CRUD OPERATIONS ---
+            
+            async saveItem() {
+                this.isSaving = true;
+                const data = { ...this.currentItem };
+                
+                // Conversão de Status do Funcionário para Boolean (Correção)
+                if (this.modalType === 'employee') {
+                    // Garante que "true"/"false" vire true/false booleano
+                    data.isActive = String(data.isActive) === 'true';
+                }
+
+                // Sanitização numérica
+                ['value', 'amount', 'salary', 'extraValue', 'cost', 'quantity'].forEach(field => {
+                    if(data[field]) data[field] = parseFloat(data[field]);
+                });
+                
+                // Remove campos auxiliares que não vão pro banco
+                const repeatCount = parseInt(data.repeatCount || 1);
+                delete data.repeatCount;
+
+                if (!data.createdAt) data.createdAt = { seconds: Date.now() / 1000 };
+                
+                try {
+                    if (db) {
+                        const collectionName = this.modalType === 'project' ? 'orcamentos' : 
+                                               this.modalType === 'employee' ? 'funcionarios' :
+                                               this.modalType === 'material' ? 'materiais' : 'financeiro';
+                        
+                        const colRef = collection(db, collectionName);
+                        
+                        if (this.isEditing && this.currentItem.id) {
+                            await updateDoc(doc(colRef, this.currentItem.id), data);
+                        } else {
+                            // Lógica de Repetição para Contas a Pagar
+                            if (this.modalType === 'payable' && repeatCount > 1) {
+                                const baseDate = new Date(data.dueDate);
+                                for(let i = 0; i < repeatCount; i++) {
+                                    const newDate = new Date(baseDate);
+                                    newDate.setMonth(baseDate.getMonth() + i);
+                                    
+                                    const payload = { 
+                                        ...data, 
+                                        dueDate: newDate.toISOString().split('T')[0],
+                                        createdAt: { seconds: Date.now() / 1000 } // Novo timestamp pra cada
+                                    };
+                                    await addDoc(colRef, payload);
+                                }
+                            } else {
+                                // Salvamento padrão para 1 item
+                                data.createdAt = new Date();
+                                await addDoc(colRef, data);
+                            }
+                        }
+                    } else {
+                        // Mock Save Logic
+                        await new Promise(r => setTimeout(r, 500));
+                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables' };
+                        const arrName = targetArrayMap[this.modalType];
+                        
+                        if (this.isEditing) {
+                            const idx = this[arrName].findIndex(i => i.id === this.currentItem.id);
+                            if(idx !== -1) this[arrName][idx] = { ...data, id: this.currentItem.id };
+                        } else {
+                            this[arrName].push({ ...data, id: Math.random(), createdAt: {seconds: Date.now()/1000} });
+                        }
+                    }
+                    this.closeModal();
+                } catch (e) {
+                    console.error(e);
+                    alert("Erro ao salvar.");
+                } finally { this.isSaving = false; }
+            },
+
+            async deleteItem() {
+                if (!confirm("Tem certeza?")) return;
+                try {
+                    if (db) {
+                        const collectionName = this.modalType === 'project' ? 'orcamentos' : 
+                                               this.modalType === 'employee' ? 'funcionarios' :
+                                               this.modalType === 'material' ? 'materiais' : 'financeiro';
+                        await deleteDoc(doc(db, collectionName, this.currentItem.id));
+                    } else {
+                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables' };
+                         const arrName = targetArrayMap[this.modalType];
+                        this[arrName] = this[arrName].filter(i => i.id !== this.currentItem.id);
+                    }
+                    this.closeModal();
+                } catch (e) { console.error(e); }
+            },
+
+            async togglePaid(bill) {
+                const newState = !bill.isPaid;
+                
+                // 1. Atualização Otimista no Local (Imediata)
+                // Encontra a conta no array local e atualiza o status para recalcular os KPIs instantaneamente
+                const index = this.payables.findIndex(p => p.id === bill.id);
+                if (index !== -1) {
+                    this.payables[index].isPaid = newState;
+                    // Força a reatividade do Alpine se necessário (para arrays complexos)
+                    this.payables = [...this.payables];
+                }
+
+                // 2. Atualização no Banco de Dados
+                if (db) {
+                    await updateDoc(doc(db, 'financeiro', bill.id), { isPaid: newState });
+                }
+            },
+
+            // --- UI HELPERS ---
+            openModal() {
+                this.resetForm();
+                // Determinar tipo de modal baseado na view
+                if(this.currentView === 'kanban' || this.currentView === 'list') this.modalType = 'project';
+                else if(this.currentView === 'employees') this.modalType = 'employee';
+                else if(this.currentView === 'materials') this.modalType = 'material';
+                else if(this.currentView === 'payables') this.modalType = 'payable';
+                
+                this.showModal = true;
+            },
+
+            editItem(item) {
+                this.currentItem = { ...item };
+                this.isEditing = true;
+                
+                if (this.currentView === 'employees') this.modalType = 'employee';
+                else if (this.currentView === 'materials') this.modalType = 'material';
+                else if (this.currentView === 'payables') this.modalType = 'payable';
+                else this.modalType = 'project';
+
+                this.showModal = true;
+            },
+
+            closeModal() {
+                this.showModal = false;
+                setTimeout(() => this.resetForm(), 300);
+            },
+
+            resetForm() {
+                this.isEditing = false;
+                this.currentItem = {};
+                if(this.currentView === 'kanban' || this.currentView === 'list') this.currentItem = { serviceType: 'Calhas', status: 'lead' };
+                if(this.currentView === 'materials') this.currentItem = { unit: 'un', type: 'Chapas', status: 'Em Estoque', orderDate: new Date().toISOString().split('T')[0] };
+                if(this.currentView === 'employees') this.currentItem = { isActive: true }; // Padrão Ativo
+                if(this.currentView === 'payables') this.currentItem = { category: 'Fixa', isPaid: false, dueDate: this.selectedMonth + '-10', repeatCount: 1 };
+            },
+
+            // --- FORMATTERS & UTILS ---
+            getProjectsByStatus(statusId) { return this.projects.filter(i => i.status === statusId); },
+            getItemsCount(statusId) { return this.projects.filter(i => i.status === statusId).length; },
+            
+            getStatusLabel(statusId) {
+                const status = this.kanbanColumns.find(c => c.id === statusId);
+                return status ? status.label : statusId;
+            },
+            
+            getStatusColor(statusId) {
+                switch(statusId) {
+                    case 'lead': return 'bg-slate-100 text-slate-800';
+                    case 'visita': return 'bg-yellow-100 text-yellow-800';
+                    case 'orcamento': return 'bg-blue-100 text-blue-800';
+                    case 'aprovado': return 'bg-orange-100 text-orange-800';
+                    case 'instalacao': return 'bg-purple-100 text-purple-800';
+                    case 'concluido': return 'bg-green-100 text-green-800';
+                    default: return 'bg-gray-100 text-gray-800';
+                }
+            },
+
+            formatMoney(value) {
+                if (!value) return 'R$ 0,00';
+                return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+            },
+            
+            formatDate(timestamp) {
+                if (!timestamp) return '';
+                // Handle pure JS Date or Firebase Timestamp
+                const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
+                return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            },
+
+            formatDateRaw(dateString) {
+                if(!dateString) return '';
+                const parts = dateString.split('-');
+                return `${parts[2]}/${parts[1]}`;
+            },
+            
+            formatCPF(cpf) {
+                if (!cpf) return '';
+                return cpf.replace(/\D/g, '')
+                    .replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+                    .replace(/(-\d{2})\d+?$/, '$1');
+            },
+
+            formatPhone(phone) {
+                if (!phone) return '';
+                const cleaned = ('' + phone).replace(/\D/g, '');
+                const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
+                if (match) return `(${match[1]}) ${match[2]}-${match[3]}`;
+                const matchOld = cleaned.match(/^(\d{2})(\d{4})(\d{4})$/);
+                if (matchOld) return `(${matchOld[1]}) ${matchOld[2]}-${matchOld[3]}`;
+                return phone;
+            },
+
+            isOverdue(bill) {
+                if(bill.isPaid) return false;
+                const today = new Date().toISOString().split('T')[0];
+                return bill.dueDate < today;
+            }
+        });
+
+        Alpine.data('appData', appData);
+        Alpine.start();
+    </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
