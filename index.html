@@ -45,6 +45,8 @@
         .kanban-col::-webkit-scrollbar { width: 4px; }
         .kanban-col::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
         .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        .table-container { overflow-x: auto; }
+        .table-container table { min-width: 1200px; } 
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden" x-data="appData()" x-cloak>
@@ -121,6 +123,20 @@
                     Lista de Serviços
                 </a>
 
+                <a href="#" @click.prevent="setView('counter')" 
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                   :class="currentView === 'counter' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                    <i data-lucide="shopping-bag" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'counter' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                    Venda Balcão
+                </a>
+
+                <a href="#" @click.prevent="setView('costs')" 
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                   :class="currentView === 'costs' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                    <i data-lucide="calculator" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'costs' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                    Custos de Obra
+                </a>
+
                 <a href="#" @click.prevent="setView('invoices')" 
                    class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
                    :class="currentView === 'invoices' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
@@ -185,19 +201,82 @@
             <!-- Área Principal -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
                 
+                <!-- Filtros para Views de Obras e Balcão -->
+                <div x-show="['kanban', 'list', 'counter'].includes(currentView)" class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                    <!-- Filtro ID -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Buscar ID</label>
+                        <input type="text" x-model="filterId" placeholder="Ex: 1001" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full">
+                    </div>
+                    <!-- Filtro Serviço -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Serviço</label>
+                        <select x-model="filterService" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full bg-white">
+                            <option value="">Todos</option>
+                            <option value="Calhas">Calhas</option>
+                            <option value="Rufos">Rufos</option>
+                            <option value="Completo">Completo</option>
+                            <option value="Limpeza">Limpeza</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <!-- Filtro Status -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Status</label>
+                        <select x-model="filterStatus" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full bg-white">
+                            <option value="">Todos</option>
+                            <template x-for="st in kanbanColumns" :key="st.id">
+                                <option :value="st.id" x-text="st.label"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <!-- Filtro Data Tipo -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Data Ref.</label>
+                        <select x-model="filterDateType" class="border border-slate-300 rounded px-2 py-1.5 text-sm bg-white cursor-pointer hover:border-brand-500 focus:ring-brand-500 w-full">
+                            <option value="createdAt">Criação (Geral)</option>
+                            <option value="budgetDate">Orçamento</option>
+                            <option value="contractDate">Contrato</option>
+                            <option value="billingDate">Faturamento</option>
+                            <option value="revenueDate">Receita</option>
+                        </select>
+                    </div>
+                    <!-- Filtro Datas Intervalo -->
+                    <div class="flex gap-2 w-full">
+                        <div class="flex-1 flex flex-col gap-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase">De</label>
+                            <input type="date" x-model="filterStartDate" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full">
+                        </div>
+                        <div class="flex-1 flex flex-col gap-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase">Até</label>
+                            <input type="date" x-model="filterEndDate" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full">
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2 lg:col-span-5 text-right">
+                        <button @click="resetFilters()" class="text-sm text-brand-600 hover:text-brand-800 underline">Limpar Filtros</button>
+                    </div>
+                </div>
+
                 <!-- KPIs (Apenas para views de Obras) -->
-                <div x-show="['kanban', 'list'].includes(currentView)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div x-show="['kanban', 'list', 'counter'].includes(currentView)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                      <div class="bg-white px-4 py-3 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3">
-                        <div class="p-2 bg-blue-100 rounded text-blue-600"><i data-lucide="dollar-sign" class="w-5 h-5"></i></div>
+                        <div class="p-2 bg-blue-100 rounded text-blue-600"><i data-lucide="wrench" class="w-5 h-5"></i></div>
                         <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold">Potencial Total</p>
-                            <p class="font-bold text-slate-800" x-text="formatMoney(kpis.totalValue)"></p>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Total Serviços</p>
+                            <p class="font-bold text-slate-800" x-text="formatMoney(kpis.totalServiceOnly)"></p>
+                        </div>
+                     </div>
+                     <div class="bg-white px-4 py-3 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="p-2 bg-indigo-100 rounded text-indigo-600"><i data-lucide="user-cog" class="w-5 h-5"></i></div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Total Mão de Obra</p>
+                            <p class="font-bold text-slate-800" x-text="formatMoney(kpis.totalLaborOnly)"></p>
                         </div>
                      </div>
                      <div class="bg-white px-4 py-3 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3">
                         <div class="p-2 bg-orange-100 rounded text-orange-600"><i data-lucide="hard-hat" class="w-5 h-5"></i></div>
                         <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold">Em Obras</p>
+                            <p class="text-xs text-slate-500 uppercase font-bold" x-text="currentView === 'counter' ? 'Vendas Balcão' : 'Pedidos em Obras'"></p>
                             <p class="font-bold text-slate-800 text-lg" x-text="kpis.activeWorks"></p>
                         </div>
                      </div>
@@ -215,7 +294,7 @@
                                                 <div class="w-3 h-3 rounded-full" :class="status.color"></div>
                                                 <h3 class="font-bold text-sm text-slate-700" x-text="status.label"></h3>
                                             </div>
-                                            <span class="bg-white px-2 py-0.5 rounded-full text-xs font-bold text-slate-500 border border-slate-200" x-text="getItemsCount(status.id)">0</span>
+                                            <span class="bg-white px-2 py-0.5 rounded-full text-xs font-bold text-slate-500 border border-slate-200" x-text="getFilteredProjectsByStatus(status.id).length">0</span>
                                         </div>
                                         <!-- Big Number por Coluna -->
                                         <div class="text-xs text-slate-500 font-medium pl-5">
@@ -223,20 +302,24 @@
                                         </div>
                                     </div>
                                     <div class="p-2 flex-1 overflow-y-auto kanban-col space-y-2">
-                                        <template x-for="item in getProjectsByStatus(status.id)" :key="item.id">
+                                        <template x-for="item in getFilteredProjectsByStatus(status.id)" :key="item.id">
                                             <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition cursor-pointer group relative" @click="editItem(item)">
                                                 <div class="absolute left-0 top-3 bottom-3 w-1 rounded-r bg-brand-500"></div>
                                                 <div class="pl-2">
                                                     <div class="flex justify-between items-start mb-1">
-                                                        <span class="text-xs font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded" x-text="item.serviceType"></span>
-                                                        <span class="text-xs text-slate-400" x-text="formatDate(item.createdAt)"></span>
+                                                        <span class="text-xs font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200" x-text="'#' + (item.customId || '---')"></span>
+                                                        <span class="text-xs text-slate-400" x-text="formatDateRawISO(item.createdAt)"></span>
                                                     </div>
                                                     <h4 class="font-bold text-slate-800 text-sm mb-0.5" x-text="item.clientName"></h4>
+                                                    <div class="text-xs font-bold text-brand-600 mb-1" x-text="item.serviceType"></div>
                                                     <p class="text-xs text-slate-500 truncate mb-2 flex items-center gap-1">
                                                         <i data-lucide="map-pin" class="w-3 h-3"></i> <span x-text="item.address || 'Sem endereço'"></span>
                                                     </p>
                                                     <div class="flex justify-between items-center pt-2 border-t border-slate-100 mt-2">
-                                                        <span class="font-bold text-sm text-slate-700" x-text="formatMoney(item.value)"></span>
+                                                        <div class="flex flex-col">
+                                                            <span class="text-[10px] text-slate-400 uppercase">Serviço</span>
+                                                            <span class="font-bold text-sm text-slate-700" x-text="formatMoney(item.serviceValue)"></span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -248,38 +331,111 @@
                     </div>
                 </div>
 
-                <!-- VIEW 2: LISTA DE OBRAS -->
-                <div x-show="currentView === 'list'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
+                <!-- VIEW 2: LISTA DE OBRAS & VENDA BALCÃO -->
+                <div x-show="['list', 'counter'].includes(currentView)" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200 table-container">
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-200">
+                        <table class="min-w-full divide-y divide-slate-200 w-full">
                             <thead class="bg-slate-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente / Endereço</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Serviço</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Data</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Valor</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]">ID / Cliente</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[15%]">Serviço</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[15%]">Status</th>
+                                    
+                                    <!-- Coluna de Datas Dinâmica -->
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]" x-show="currentView === 'list'">
+                                        Datas (Orç / Cont / Fat / Rec)
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]" x-show="currentView === 'counter'">
+                                        Datas (Venda / Fat)
+                                    </th>
+
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]">Valores</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider w-[10%]">Ações</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-slate-200">
-                                <template x-for="item in projects" :key="item.id">
-                                    <tr class="hover:bg-slate-50 transition cursor-pointer" @click="editItem(item)">
-                                        <td class="px-6 py-4">
+                                <template x-for="item in filteredProjects" :key="item.id">
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4 cursor-pointer" @click="editItem(item)">
+                                            <div class="text-xs font-bold text-slate-500" x-text="'#' + (item.customId || '---')"></div>
                                             <div class="text-sm font-medium text-slate-900" x-text="item.clientName"></div>
-                                            <div class="text-xs text-slate-500" x-text="item.address"></div>
+                                            <div class="text-xs text-slate-500 truncate max-w-[150px]" x-text="item.address || 'Balcão'"></div>
                                         </td>
-                                        <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-slate-100" x-text="item.serviceType"></span></td>
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 cursor-pointer" @click="editItem(item)">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-slate-100" x-text="item.serviceType"></span>
+                                        </td>
+                                        <td class="px-6 py-4 cursor-pointer" @click="editItem(item)">
                                             <span class="px-2 py-1 text-xs font-semibold rounded-full" :class="getStatusColor(item.status)" x-text="getStatusLabel(item.status)"></span>
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="formatDate(item.createdAt)"></td>
-                                        <td class="px-6 py-4 text-sm font-bold text-slate-700" x-text="formatMoney(item.value)"></td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                        
+                                        <!-- Datas: Lista Completa -->
+                                        <td class="px-6 py-4 text-xs text-slate-600 space-y-1 cursor-pointer" @click="editItem(item)" x-show="currentView === 'list'">
+                                            <div class="grid grid-cols-2 gap-1">
+                                                <span title="Orçamento">O: <span x-text="formatDateRaw(item.budgetDate)"></span></span>
+                                                <span title="Contrato">C: <span x-text="formatDateRaw(item.contractDate)"></span></span>
+                                                <span title="Faturamento">F: <span x-text="formatDateRaw(item.billingDate)"></span></span>
+                                                <span title="Recebimento">R: <span x-text="formatDateRaw(item.revenueDate)"></span></span>
+                                            </div>
+                                        </td>
+                                        <!-- Datas: Balcão -->
+                                        <td class="px-6 py-4 text-xs text-slate-600 space-y-1 cursor-pointer" @click="editItem(item)" x-show="currentView === 'counter'">
+                                            <div class="grid grid-cols-1 gap-1">
+                                                <span title="Venda">Venda: <span x-text="formatDateRawISO(item.createdAt)"></span></span>
+                                                <span title="Faturamento">Fat: <span x-text="formatDateRaw(item.billingDate)"></span></span>
+                                            </div>
+                                        </td>
+
+                                        <td class="px-6 py-4 cursor-pointer" @click="editItem(item)">
+                                            <div class="text-xs text-slate-500" x-show="currentView === 'list'">Contrato: <span class="font-semibold text-slate-700" x-text="formatMoney(item.contractValue)"></span></div>
+                                            <div class="text-xs text-slate-500">Serviço: <span class="font-bold text-brand-700" x-text="formatMoney(item.serviceValue)"></span></div>
+                                        </td>
+                                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                            <button @click="editItem(item)" class="text-brand-600 hover:text-brand-900" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            <button @click="deleteItem(item)" class="text-red-500 hover:text-red-700" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                         </td>
                                     </tr>
                                 </template>
+                                <tr x-show="filteredProjects.length === 0">
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">Nenhum registro encontrado com os filtros atuais.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VIEW 7: CUSTOS DE OBRA (Melhorado) -->
+                <div x-show="currentView === 'costs'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200 table-container">
+                    <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                        <h3 class="text-lg font-medium leading-6 text-slate-900">Histórico de Custos por Obra</h3>
+                        <span class="text-xs text-slate-500">Controle financeiro detalhado</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 w-full">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]">ID Obra</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[30%]">Cliente</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]">Data do Registro</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]">Custo Total</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider w-[10%]">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200">
+                                <template x-for="cost in projectCosts" :key="cost.id">
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4 text-xs font-bold text-slate-500" x-text="'#' + (cost.projectCustomId || '---')"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-900" x-text="cost.clientName"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="formatDate(cost.createdAt)"></td>
+                                        <td class="px-6 py-4 text-sm font-bold text-danger-700" x-text="formatMoney(cost.totalCost)"></td>
+                                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                            <button @click="editItem(cost)" class="text-brand-600 hover:text-brand-900" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            <button @click="deleteItem(cost)" class="text-red-500 hover:text-red-700" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="projectCosts.length === 0">
+                                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">Nenhum custo registrado. Clique em "Novo Custo" para adicionar.</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -295,10 +451,11 @@
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead class="bg-slate-50">
                                 <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ID</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Serviço</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Data Conclusão</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Valor Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Data Faturamento</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Valor Serviço</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status NF</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
                                 </tr>
@@ -306,13 +463,14 @@
                             <tbody class="bg-white divide-y divide-slate-200">
                                 <template x-for="item in projects.filter(p => ['concluido', 'instalacao'].includes(p.status))" :key="item.id">
                                     <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4 text-xs font-bold text-slate-500" x-text="'#' + (item.customId || '---')"></td>
                                         <td class="px-6 py-4">
                                             <div class="text-sm font-medium text-slate-900" x-text="item.clientName"></div>
                                             <div class="text-xs text-slate-500" x-text="formatCPF(item.cnpj || 'CPF não inf.')"></div>
                                         </td>
                                         <td class="px-6 py-4 text-sm text-slate-500" x-text="item.description || item.serviceType"></td>
-                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="formatDate(item.createdAt)"></td>
-                                        <td class="px-6 py-4 text-sm font-bold text-slate-700" x-text="formatMoney(item.value)"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="formatDateRaw(item.billingDate)"></td>
+                                        <td class="px-6 py-4 text-sm font-bold text-slate-700" x-text="formatMoney(item.serviceValue)"></td>
                                         <td class="px-6 py-4">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                                 Pendente
@@ -326,14 +484,14 @@
                                     </tr>
                                 </template>
                                 <tr x-show="projects.filter(p => ['concluido', 'instalacao'].includes(p.status)).length === 0">
-                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">Nenhum serviço pendente de faturamento.</td>
+                                    <td colspan="7" class="px-6 py-12 text-center text-slate-500">Nenhum serviço pendente de faturamento.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- VIEW 3: FUNCIONÁRIOS -->
+                <!-- VIEW 3: FUNCIONÁRIOS (Atualizado com Cursos e Alerta) -->
                 <div x-show="currentView === 'employees'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
@@ -350,16 +508,24 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-slate-200">
                                 <template x-for="emp in employees" :key="emp.id">
-                                    <tr class="hover:bg-slate-50 transition cursor-pointer" @click="editItem(emp)">
-                                        <td class="px-6 py-4">
+                                    <tr class="hover:bg-slate-50 transition cursor-pointer">
+                                        <td class="px-6 py-4 cursor-pointer" @click="editItem(emp)">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
                                                   :class="emp.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                                                 <span x-text="emp.isActive ? 'Ativo' : 'Inativo'"></span>
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm font-medium text-slate-900" x-text="emp.name"></div>
-                                            <div class="text-xs text-slate-500" x-text="formatCPF(emp.cpf)"></div>
+                                        <td class="px-6 py-4 cursor-pointer" @click="editItem(emp)">
+                                            <div class="flex items-center">
+                                                <div class="mr-2">
+                                                    <div class="text-sm font-medium text-slate-900" x-text="emp.name"></div>
+                                                    <div class="text-xs text-slate-500" x-text="formatCPF(emp.cpf)"></div>
+                                                </div>
+                                                <!-- Alerta de Curso Vencido -->
+                                                <div x-show="hasExpiredCourse(emp)" class="text-red-500" title="Curso Vencido">
+                                                    <i data-lucide="triangle-alert" class="w-5 h-5"></i>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 text-sm text-slate-700" x-text="emp.role"></td>
                                         <td class="px-6 py-4 text-sm text-slate-500" x-text="formatPhone(emp.phone)"></td>
@@ -368,8 +534,9 @@
                                             <div class="text-xs text-slate-500">Extra: <span class="font-bold text-success-600" x-text="formatMoney(emp.extraValue)"></span></div>
                                         </td>
                                         <td class="px-6 py-4 text-sm text-slate-500 italic" x-text="emp.extras || '-'"></td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                            <button @click="editItem(emp)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            <button @click="deleteItem(emp)" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                         </td>
                                     </tr>
                                 </template>
@@ -394,9 +561,9 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-slate-200">
                                 <template x-for="mat in materials" :key="mat.id">
-                                    <tr class="hover:bg-slate-50 transition cursor-pointer" @click="editItem(mat)">
-                                        <td class="px-6 py-4 font-medium text-slate-900" x-text="mat.name"></td>
-                                        <td class="px-6 py-4">
+                                    <tr class="hover:bg-slate-50 transition cursor-pointer">
+                                        <td class="px-6 py-4 font-medium text-slate-900 cursor-pointer" @click="editItem(mat)" x-text="mat.name"></td>
+                                        <td class="px-6 py-4 cursor-pointer" @click="editItem(mat)">
                                             <span class="inline-flex text-xs leading-5 font-semibold rounded-full px-2" :class="mat.status === 'Pedido Feito' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'" x-text="mat.status || 'Em Estoque'"></span>
                                             <div class="text-xs text-slate-400 mt-1" x-text="formatDateRaw(mat.orderDate)"></div>
                                         </td>
@@ -405,8 +572,9 @@
                                             <span x-text="mat.quantity"></span> <span x-text="mat.unit" class="text-xs font-normal text-slate-400"></span>
                                         </td>
                                         <td class="px-6 py-4 text-sm text-slate-700" x-text="formatMoney(mat.cost)"></td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                            <button @click="editItem(mat)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            <button @click="deleteItem(mat)" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                         </td>
                                     </tr>
                                 </template>
@@ -443,18 +611,21 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-slate-200">
                                     <template x-for="bill in filteredPayables" :key="bill.id">
-                                        <tr class="hover:bg-slate-50 transition">
+                                        <tr class="hover:bg-slate-50 transition" :class="bill.isAuto ? 'bg-blue-50' : ''">
                                             <td class="px-4 py-4 text-center">
-                                                <input type="checkbox" :checked="bill.isPaid" @click.prevent="togglePaid(bill)" class="w-5 h-5 text-brand-600 rounded focus:ring-brand-500 cursor-pointer">
+                                                <!-- Click stop propagation para nao abrir edição ao clicar no check -->
+                                                <input type="checkbox" :checked="bill.isPaid" @click.stop="togglePaid(bill)" class="w-5 h-5 text-brand-600 rounded focus:ring-brand-500 cursor-pointer">
                                             </td>
                                             <td class="px-6 py-4 cursor-pointer" @click="editItem(bill)">
                                                 <div class="font-medium text-slate-900" :class="{'line-through text-slate-400': bill.isPaid}" x-text="bill.description"></div>
+                                                <div x-show="bill.isAuto" class="text-[10px] text-blue-600 font-bold uppercase">Automático</div>
                                             </td>
                                             <td class="px-6 py-4 text-sm text-slate-500" x-text="bill.category"></td>
                                             <td class="px-6 py-4 text-sm" :class="isOverdue(bill) ? 'text-red-600 font-bold' : 'text-slate-500'" x-text="formatDateRaw(bill.dueDate)"></td>
                                             <td class="px-6 py-4 text-sm font-bold text-slate-700" x-text="formatMoney(bill.amount)"></td>
-                                            <td class="px-6 py-4 text-right">
-                                                <button @click="editItem(bill)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                                <button @click="editItem(bill)" class="text-brand-600 hover:text-brand-900" x-show="!bill.isAuto"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                                <button @click="deleteItem(bill)" class="text-red-500 hover:text-red-700" x-show="!bill.isAuto"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                             </td>
                                         </tr>
                                     </template>
@@ -491,6 +662,37 @@
                             <!-- FORM: ORÇAMENTOS/PROJETOS -->
                             <template x-if="modalType === 'project'">
                                 <div class="contents">
+                                    <div class="sm:col-span-2" x-show="!isEditing">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="text-xs font-bold text-slate-500 uppercase">Vincular a Obra Existente?</label>
+                                            <div class="flex items-center">
+                                                <input type="checkbox" x-model="linkToExisting" class="mr-2 rounded text-brand-600 focus:ring-brand-500">
+                                                <span class="text-sm text-slate-600">Sim</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Se vincular, mostra Select -->
+                                        <div x-show="linkToExisting">
+                                            <select x-model="selectedParentId" class="w-full px-3 py-2 border rounded-lg bg-yellow-50 border-yellow-300">
+                                                <option value="">Selecione uma obra...</option>
+                                                <!-- Filtra projetos únicos por ID para o dropdown -->
+                                                <template x-for="p in uniqueProjects" :key="p.customId">
+                                                    <option :value="p.customId" x-text="'#' + p.customId + ' - ' + p.clientName"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <!-- Se não, mostra ID automático -->
+                                        <div x-show="!linkToExisting" class="text-sm text-slate-500 bg-slate-100 p-2 rounded">
+                                            Será gerado novo ID: <strong x-text="'#' + nextId"></strong>
+                                        </div>
+                                    </div>
+
+                                    <!-- Campo ID visível apenas leitura na edição -->
+                                    <div class="sm:col-span-2" x-show="isEditing">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ID da Obra</label>
+                                        <input type="text" :value="'#' + currentItem.customId" disabled class="w-full px-3 py-2 border rounded-lg bg-slate-100 text-slate-500">
+                                    </div>
+
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cliente</label>
                                         <input type="text" x-model="currentItem.clientName" class="w-full px-3 py-2 border rounded-lg" required>
@@ -517,10 +719,17 @@
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição</label>
                                         <textarea x-model="currentItem.description" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea>
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor (R$)</label>
-                                        <input type="number" step="0.01" x-model="currentItem.value" class="w-full px-3 py-2 border rounded-lg">
+                                    
+                                    <!-- Novos Campos de Valor -->
+                                    <div x-show="currentView !== 'counter'">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Contrato (Total)</label>
+                                        <input type="number" step="0.01" x-model="currentItem.contractValue" class="w-full px-3 py-2 border rounded-lg bg-slate-50">
                                     </div>
+                                    <div :class="currentView === 'counter' ? 'sm:col-span-2' : ''">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Serviço (Este Pedido)</label>
+                                        <input type="number" step="0.01" x-model="currentItem.serviceValue" class="w-full px-3 py-2 border rounded-lg border-brand-300">
+                                    </div>
+
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
                                         <select x-model="currentItem.status" class="w-full px-3 py-2 border rounded-lg">
@@ -529,14 +738,132 @@
                                             </template>
                                         </select>
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data</label>
-                                        <input type="date" x-model="currentItem.date" class="w-full px-3 py-2 border rounded-lg">
+
+                                    <!-- Campo Mão de Obra (Novo) -->
+                                    <div class="sm:col-span-2 flex items-center gap-2 mt-2 p-2 bg-orange-50 rounded border border-orange-200" x-show="!isEditing && currentView !== 'counter'">
+                                        <input type="checkbox" x-model="hasLabor" class="w-4 h-4 text-accent-600 focus:ring-accent-500">
+                                        <span class="text-sm font-bold text-slate-700">Adicionar Mão de Obra (20%)?</span>
+                                    </div>
+
+                                    <!-- Campos de Data -->
+                                    <div class="sm:col-span-2 border-t border-slate-100 pt-4 mt-2">
+                                        <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Datas de Acompanhamento</h4>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div x-show="currentView !== 'counter'">
+                                                <label class="block text-xs text-slate-500 mb-1">Data Orçamento</label>
+                                                <input type="date" x-model="currentItem.budgetDate" class="w-full px-3 py-2 border rounded-lg text-sm">
+                                            </div>
+                                            <div x-show="currentView !== 'counter'">
+                                                <label class="block text-xs text-slate-500 mb-1">Envio Contrato</label>
+                                                <input type="date" x-model="currentItem.contractDate" class="w-full px-3 py-2 border rounded-lg text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs text-slate-500 mb-1">Previsão Faturamento</label>
+                                                <input type="date" x-model="currentItem.billingDate" class="w-full px-3 py-2 border rounded-lg text-sm">
+                                            </div>
+                                            <div x-show="currentView !== 'counter'">
+                                                <label class="block text-xs text-slate-500 mb-1">Previsão Recebimento</label>
+                                                <input type="date" x-model="currentItem.revenueDate" class="w-full px-3 py-2 border rounded-lg text-sm">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
 
-                            <!-- FORM: FUNCIONÁRIOS -->
+                            <!-- FORM: CUSTOS (NOVO) -->
+                            <template x-if="modalType === 'cost'">
+                                <div class="contents">
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Vincular a Obra (Obrigatório)</label>
+                                        <select x-model="currentItem.projectRefId" class="w-full px-3 py-2 border rounded-lg bg-yellow-50 border-yellow-300" required @change="updateCostProjectData">
+                                            <option value="">Selecione uma obra...</option>
+                                            <template x-for="p in uniqueProjects" :key="p.customId">
+                                                <option :value="p.id" x-text="'#' + p.customId + ' - ' + p.clientName"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Checklist de Custos</label>
+                                        <div class="space-y-3">
+                                            <!-- Material -->
+                                            <div class="p-2 rounded bg-slate-50 border">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center">
+                                                        <input type="checkbox" x-model="costChecks.material" class="w-4 h-4 text-brand-600 rounded">
+                                                        <span class="ml-2 text-sm text-slate-700 font-medium">Material Utilizado</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Submenu de Materiais -->
+                                                <div x-show="costChecks.material" class="mt-2 pl-6 space-y-2 border-l-2 border-brand-200">
+                                                    <template x-for="matType in ['PU/Vedante', 'Rebite', 'Capacete', 'Porca', 'Parafuso']">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-xs text-slate-600 w-24" x-text="matType"></span>
+                                                            <input type="number" x-model="currentItem.costs.materials[matType].qty" placeholder="Qtd" class="w-16 border rounded px-1 py-0.5 text-xs text-center">
+                                                            <input type="number" step="0.01" x-model="currentItem.costs.materials[matType].unitCost" placeholder="R$ Unit." class="w-20 border rounded px-1 py-0.5 text-xs text-right">
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+
+                                            <!-- Refeição -->
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
+                                                <div class="flex items-center">
+                                                    <input type="checkbox" x-model="costChecks.meal" class="w-4 h-4 text-brand-600 rounded">
+                                                    <span class="ml-2 text-sm text-slate-700">Custo de Refeição</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="currentItem.costs.meal" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.meal" placeholder="0.00">
+                                            </div>
+                                            <!-- Pintura -->
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
+                                                <div class="flex items-center">
+                                                    <input type="checkbox" x-model="costChecks.painting" class="w-4 h-4 text-brand-600 rounded">
+                                                    <span class="ml-2 text-sm text-slate-700">Custo de Pintura</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="currentItem.costs.painting" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.painting" placeholder="0.00">
+                                            </div>
+                                            <!-- Operacional -->
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
+                                                <div class="flex items-center">
+                                                    <input type="checkbox" x-model="costChecks.operational" class="w-4 h-4 text-brand-600 rounded">
+                                                    <span class="ml-2 text-sm text-slate-700">Custo Operacional</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="currentItem.costs.operational" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.operational" placeholder="0.00">
+                                            </div>
+                                            <!-- Locomoção -->
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
+                                                <div class="flex items-center">
+                                                    <input type="checkbox" x-model="costChecks.transport" class="w-4 h-4 text-brand-600 rounded">
+                                                    <span class="ml-2 text-sm text-slate-700">Custo de Locomoção</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="currentItem.costs.transport" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.transport" placeholder="0.00">
+                                            </div>
+                                            <!-- Imprevistos -->
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
+                                                <div class="flex items-center">
+                                                    <input type="checkbox" x-model="costChecks.unforeseen" class="w-4 h-4 text-brand-600 rounded">
+                                                    <span class="ml-2 text-sm text-slate-700">Imprevistos</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="currentItem.costs.unforeseen" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.unforeseen" placeholder="0.00">
+                                            </div>
+                                            <!-- Imposto -->
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
+                                                <div class="flex items-center">
+                                                    <input type="checkbox" x-model="costChecks.tax" class="w-4 h-4 text-brand-600 rounded">
+                                                    <span class="ml-2 text-sm text-slate-700">Imposto Gerado</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="currentItem.costs.tax" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.tax" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="sm:col-span-2 text-right">
+                                        <p class="text-sm font-bold text-slate-500">Total Calculado: <span class="text-xl text-danger-600" x-text="formatMoney(calculatedTotalCost)"></span></p>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- FORM: FUNCIONÁRIOS (Atualizado com Cursos) -->
                             <template x-if="modalType === 'employee'">
                                 <div class="contents">
                                     <div class="sm:col-span-2 flex items-center gap-2 mb-2 p-2 bg-slate-50 rounded border">
@@ -573,6 +900,28 @@
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Funções Extras / Obs</label>
                                         <textarea x-model="currentItem.extras" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea>
+                                    </div>
+
+                                    <!-- Cursos Obrigatórios -->
+                                    <div class="sm:col-span-2 border-t border-slate-100 pt-4 mt-2">
+                                        <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Cursos Obrigatórios</h4>
+                                        <div class="space-y-3">
+                                            <template x-for="course in coursesDef" :key="course.key">
+                                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-slate-50 rounded border border-slate-200">
+                                                    <span class="text-sm font-medium text-slate-700 w-40" x-text="course.label"></span>
+                                                    <div class="flex gap-2 flex-1">
+                                                        <div class="flex-1">
+                                                            <label class="block text-[10px] text-slate-400">Conclusão</label>
+                                                            <input type="date" x-model="currentItem.courses[course.key].completion" class="w-full px-2 py-1 border rounded text-xs">
+                                                        </div>
+                                                        <div class="flex-1">
+                                                            <label class="block text-[10px] text-slate-400">Vencimento</label>
+                                                            <input type="date" x-model="currentItem.courses[course.key].expiration" class="w-full px-2 py-1 border rounded text-xs" :class="isDateExpired(currentItem.courses[course.key].expiration) ? 'border-red-300 bg-red-50 text-red-700' : ''">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -631,11 +980,11 @@
                                 <div class="contents">
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição</label>
-                                        <input type="text" x-model="currentItem.description" class="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Conta de Luz" required>
+                                        <input type="text" x-model="currentItem.description" class="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Conta de Luz" required :disabled="currentItem.isAuto">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Categoria</label>
-                                        <select x-model="currentItem.category" class="w-full px-3 py-2 border rounded-lg">
+                                        <select x-model="currentItem.category" class="w-full px-3 py-2 border rounded-lg" :disabled="currentItem.isAuto">
                                             <option value="Fixa">Despesa Fixa (Água/Luz)</option>
                                             <option value="Salario">Salários</option>
                                             <option value="ExtraSalario">Valor Extra - Salário</option>
@@ -647,13 +996,13 @@
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor</label>
-                                        <input type="number" step="0.01" x-model="currentItem.amount" class="w-full px-3 py-2 border rounded-lg">
+                                        <input type="number" step="0.01" x-model="currentItem.amount" class="w-full px-3 py-2 border rounded-lg" :disabled="currentItem.isAuto">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data de Vencimento</label>
                                         <input type="date" x-model="currentItem.dueDate" class="w-full px-3 py-2 border rounded-lg" required>
                                     </div>
-                                    <div x-show="!isEditing" class="sm:col-span-2">
+                                    <div x-show="!isEditing && !currentItem.isAuto" class="sm:col-span-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Repetir por (meses)</label>
                                         <input type="number" x-model="currentItem.repeatCount" min="1" max="24" class="w-full px-3 py-2 border rounded-lg" placeholder="1">
                                         <p class="text-xs text-slate-400 mt-1">Deixe 1 para apenas este mês.</p>
@@ -673,7 +1022,7 @@
                             <span x-show="!isSaving">Salvar</span>
                             <span x-show="isSaving" class="animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></span>
                         </button>
-                        <button x-show="isEditing" @click="deleteItem" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-red-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-red-700 hover:bg-red-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Excluir</button>
+                        <button x-show="isEditing && !currentItem.isAuto" @click="deleteItem()" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-red-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-red-700 hover:bg-red-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Excluir</button>
                         <button @click="closeModal()" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Cancelar</button>
                     </div>
                 </div>
@@ -697,7 +1046,6 @@
             storageBucket: "calhas-norte-b7c06.firebasestorage.app",
             messagingSenderId: "938655639840",
             appId: "1:938655639840:web:e429bcb73124c4b5164f45"
-
         };
 
         const isCanvasEnv = typeof __firebase_config !== 'undefined';
@@ -719,8 +1067,17 @@
             if(type === 'employee') return `${root}/rh/funcionarios`;
             if(type === 'material') return `${root}/estoque/materiais`;
             if(type === 'payable') return `${root}/financeiro/contas`;
+            if(type === 'cost') return `${root}/financeiro/custos_obra`; // Nova Coleção
             return `${root}/geral/itens`;
         }
+        
+        // Definição dos Cursos
+        const COURSES_DEF = [
+            { key: 'safety', label: 'Segurança do Trabalho' },
+            { key: 'machinery', label: 'Manuseio de Maquinário' },
+            { key: 'rappel', label: 'Rapel' },
+            { key: 'measurement', label: 'Medição Predial' }
+        ];
 
         const appData = () => ({
             isLoggedIn: false,
@@ -736,11 +1093,34 @@
             sidebarOpen: false,
             selectedMonth: new Date().toISOString().slice(0, 7), // YYYY-MM
             
+            // Filtros de Data
+            filterStartDate: '',
+            filterEndDate: '',
+            filterDateType: 'createdAt', // Tipo de data para filtro
+            
+            // Filtros Extras
+            filterId: '',
+            filterService: '',
+            filterStatus: '',
+
+            // Modal Logic
+            linkToExisting: false,
+            selectedParentId: '',
+            hasLabor: false, 
+            coursesDef: COURSES_DEF,
+            
+            // Checklist de Custos (Controle de visibilidade dos inputs)
+            costChecks: {
+                material: false, meal: false, painting: false, 
+                operational: false, transport: false, unforeseen: false, tax: false
+            },
+
             // Data Arrays
             projects: [],
             employees: [],
             materials: [],
             payables: [],
+            projectCosts: [], // Novo Array de Custos
             
             // Modal State
             showModal: false,
@@ -759,23 +1139,145 @@
             ],
 
             // Computeds
+            get filteredProjects() {
+                // Filtro Base (View Balcão vs Obra)
+                let items = this.projects;
+                
+                if (this.currentView === 'counter') {
+                    // Balcão: Filtrar por categoria 'counter'
+                    items = items.filter(p => p.category === 'counter');
+                } else if (['kanban', 'list', 'invoices'].includes(this.currentView)) {
+                    // Obras: Filtrar por categoria 'work' (padrão se vazio)
+                    items = items.filter(p => !p.category || p.category === 'work');
+                }
+
+                // 1. Filtro de Data
+                if (this.filterStartDate || this.filterEndDate) {
+                    if (this.filterDateType === 'createdAt') {
+                        const start = this.filterStartDate ? new Date(this.filterStartDate).getTime() : 0;
+                        const end = this.filterEndDate ? new Date(this.filterEndDate).getTime() + 86400000 : Infinity; 
+                        items = items.filter(item => {
+                            const itemDate = item.createdAt ? (item.createdAt.seconds * 1000) : 0;
+                            return itemDate >= start && itemDate <= end;
+                        });
+                    } else {
+                        const start = this.filterStartDate || '0000-00-00';
+                        const end = this.filterEndDate || '9999-99-99';
+                        items = items.filter(item => {
+                            const d = item[this.filterDateType];
+                            return d && d >= start && d <= end;
+                        });
+                    }
+                }
+
+                // 2. Filtro ID
+                if (this.filterId) {
+                    items = items.filter(i => (i.customId + '').includes(this.filterId));
+                }
+
+                // 3. Filtro Serviço
+                if (this.filterService) {
+                    items = items.filter(i => i.serviceType === this.filterService);
+                }
+
+                // 4. Filtro Status
+                if (this.filterStatus) {
+                    items = items.filter(i => i.status === this.filterStatus);
+                }
+
+                // Ordenação: ID Descendente (Mais recente primeiro)
+                return items.sort((a, b) => (b.customId || 0) - (a.customId || 0));
+            },
+
+            get calculatedTotalCost() {
+                if (this.modalType !== 'cost' || !this.currentItem.costs) return 0;
+                const c = this.currentItem.costs;
+                let total = 0;
+                
+                // Soma de Materiais Específicos
+                if(this.costChecks.material && c.materials) {
+                    Object.values(c.materials).forEach(m => {
+                        total += (parseFloat(m.qty) || 0) * (parseFloat(m.unitCost) || 0);
+                    });
+                }
+
+                // Soma dos Custos Fixos
+                if(this.costChecks.meal) total += parseFloat(c.meal || 0);
+                if(this.costChecks.painting) total += parseFloat(c.painting || 0);
+                if(this.costChecks.operational) total += parseFloat(c.operational || 0);
+                if(this.costChecks.transport) total += parseFloat(c.transport || 0);
+                if(this.costChecks.unforeseen) total += parseFloat(c.unforeseen || 0);
+                if(this.costChecks.tax) total += parseFloat(c.tax || 0);
+                
+                return total;
+            },
+
             get kpis() {
+                // Filtra os projetos (já filtrados por data e tipo)
+                const items = this.filteredProjects;
+                
+                // Separa Serviços e Mão de Obra pela descrição ou tipo
+                const serviceItems = items.filter(i => !i.description?.includes('Mão de Obra'));
+                const laborItems = items.filter(i => i.description?.includes('Mão de Obra'));
+
                 return {
-                    totalValue: this.projects.reduce((acc, item) => acc + (parseFloat(item.value) || 0), 0),
-                    activeWorks: this.projects.filter(i => ['aprovado', 'instalacao'].includes(i.status)).length
+                    totalServiceOnly: serviceItems.reduce((acc, item) => acc + (parseFloat(item.serviceValue) || 0), 0),
+                    totalLaborOnly: laborItems.reduce((acc, item) => acc + (parseFloat(item.serviceValue) || 0), 0),
+                    activeWorks: items.filter(i => ['aprovado', 'instalacao'].includes(i.status)).length
                 }
             },
             
             get filteredPayables() {
-                return this.payables.filter(p => p.dueDate && p.dueDate.startsWith(this.selectedMonth))
-                                    .sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+                // Filtra contas do DB
+                let manualPayables = this.payables.filter(p => p.dueDate && p.dueDate.startsWith(this.selectedMonth));
+                
+                // Gera salários automáticos (Virtuais)
+                const activeEmployees = this.employees.filter(e => e.isActive && e.salary > 0);
+                const automaticSalaries = activeEmployees.map(emp => {
+                    // Tenta achar se já existe um pagamento de salário para este funcionário neste mês
+                    const alreadyExists = manualPayables.find(p => p.category === 'Salario' && p.description.includes(emp.name));
+                    
+                    if (alreadyExists) return null; // Se já existe real, não cria virtual
+
+                    return {
+                        id: 'auto_' + emp.id,
+                        isAuto: true,
+                        description: 'Salário - ' + emp.name,
+                        category: 'Salario',
+                        amount: emp.salary,
+                        dueDate: this.selectedMonth + '-05',
+                        isPaid: false,
+                        employeeId: emp.id
+                    };
+                }).filter(i => i !== null);
+
+                // Junta as listas
+                return [...manualPayables, ...automaticSalaries].sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+            },
+            
+            get uniqueProjects() {
+                const unique = {};
+                this.projects.forEach(p => {
+                    // Apenas obras para vincular (não balcão)
+                    if(p.customId && !unique[p.customId] && (!p.category || p.category === 'work')) {
+                        unique[p.customId] = p;
+                    }
+                });
+                return Object.values(unique).sort((a,b) => b.customId - a.customId);
+            },
+            
+            get nextId() {
+                const ids = this.projects.map(p => parseInt(p.customId || 0));
+                const maxId = ids.length > 0 ? Math.max(...ids) : 1000;
+                return maxId + 1;
             },
 
             get pageTitle() {
                 const map = {
                     'kanban': 'Quadro de Serviços', 'list': 'Lista de Serviços',
+                    'counter': 'Venda Balcão',
                     'employees': 'Gestão de Funcionários', 'materials': 'Estoque de Matéria Prima',
-                    'payables': 'Contas a Pagar', 'invoices': 'Emissão de Nota Fiscal'
+                    'payables': 'Contas a Pagar', 'invoices': 'Emissão de Nota Fiscal', 'costs': 'Custos de Obra'
                 };
                 return map[this.currentView];
             },
@@ -783,16 +1285,16 @@
             get modalTitle() {
                 const map = {
                     'project': 'Orçamento', 'employee': 'Funcionário',
-                    'material': 'Item', 'payable': 'Conta'
+                    'material': 'Item', 'payable': 'Conta', 'cost': 'Custo de Obra'
                 };
                 return map[this.modalType];
             },
 
             get addButtonText() {
                 const map = {
-                    'kanban': 'Novo Orçamento', 'list': 'Novo Orçamento',
+                    'kanban': 'Novo Orçamento', 'list': 'Novo Orçamento', 'counter': 'Nova Venda',
                     'employees': 'Novo Funcionário', 'materials': 'Novo Material',
-                    'payables': 'Nova Conta'
+                    'payables': 'Nova Conta', 'costs': 'Novo Custo'
                 };
                 return map[this.currentView];
             },
@@ -800,11 +1302,54 @@
             init() {
                 this.checkAuth();
                 this.$watch('currentView', () => setTimeout(() => lucide.createIcons(), 100));
+                
+                this.$watch('selectedParentId', (val) => {
+                    if (val && this.linkToExisting) {
+                        const parent = this.projects.find(p => p.customId == val);
+                        if (parent) {
+                            this.currentItem.clientName = parent.clientName;
+                            this.currentItem.address = parent.address;
+                            this.currentItem.phone = parent.phone;
+                            this.currentItem.contractValue = parent.contractValue;
+                            this.currentItem.budgetDate = parent.budgetDate;
+                            this.currentItem.contractDate = parent.contractDate;
+                        }
+                    }
+                });
             },
             
             setView(view) {
                 this.currentView = view;
                 this.sidebarOpen = false;
+                // Limpar filtros ao trocar de view
+                this.filterId = '';
+                this.filterService = '';
+                this.filterStatus = '';
+            },
+
+            // --- METHODS ---
+            
+            updateCostProjectData() {
+                if (this.modalType === 'cost' && this.currentItem.projectRefId) {
+                    const project = this.projects.find(p => p.id === this.currentItem.projectRefId);
+                    if (project) {
+                        // Snapshot dos dados para facilitar exibição na lista
+                        this.currentItem.projectCustomId = project.customId;
+                        this.currentItem.clientName = project.clientName;
+                    }
+                }
+            },
+            
+            isDateExpired(dateStr) {
+                if (!dateStr) return false;
+                const today = new Date().toISOString().split('T')[0];
+                return dateStr <= today;
+            },
+            
+            hasExpiredCourse(emp) {
+                if (!emp.courses) return false;
+                const today = new Date().toISOString().split('T')[0];
+                return Object.values(emp.courses).some(c => c.expiration && c.expiration <= today);
             },
 
             // --- AUTH ---
@@ -822,22 +1367,18 @@
                 this.loginError = '';
                 try {
                     if (auth) {
-                        // Lógica prioritária: Email/Senha
                         if (this.loginForm.email && this.loginForm.password) {
                             await signInWithEmailAndPassword(auth, this.loginForm.email, this.loginForm.password);
                         } else {
-                            // Fallback para Anônimo se campos vazios (Demo)
                             await signInAnonymously(auth);
                         }
                     } else {
-                        // Mock
                         await new Promise(r => setTimeout(r, 800));
                         this.isLoggedIn = true;
                         this.loadAllData();
                     }
                 } catch (e) { 
                     console.error("Login Error:", e);
-                    // Tradução amigável dos erros
                     if (e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
                         this.loginError = "Email ou senha incorretos.";
                     } else if (e.code === 'auth/operation-not-allowed') {
@@ -863,13 +1404,15 @@
                 this.loadCollection('employee', 'employees');
                 this.loadCollection('material', 'materials');
                 this.loadCollection('payable', 'payables');
+                this.loadCollection('cost', 'projectCosts');
             },
 
             loadCollection(type, arrayName) {
                 if (db) {
                     const collectionName = type === 'project' ? 'orcamentos' : 
                                            type === 'employee' ? 'funcionarios' :
-                                           type === 'material' ? 'materiais' : 'financeiro';
+                                           type === 'material' ? 'materiais' : 
+                                           type === 'cost' ? 'custos_obra' : 'financeiro';
                     
                     const q = query(collection(db, collectionName));
                     onSnapshot(q, (snapshot) => {
@@ -883,10 +1426,15 @@
 
             loadMockData(arrayName) {
                 const mocks = {
-                    'projects': [{ id: 1, clientName: 'Padaria Central', status: 'aprovado', value: 1500, createdAt: {seconds: Date.now()/1000}, serviceType: 'Calhas' }],
-                    'employees': [{ id: 1, name: 'João Silva', isActive: true, cpf: '12345678900', role: 'Instalador', phone: '119999999', salary: 2500, extraValue: 150 }],
+                    'projects': [{ 
+                        id: 1, customId: 1001, category: 'work', clientName: 'Padaria Central', status: 'aprovado', 
+                        contractValue: 5000, serviceValue: 1500, createdAt: {seconds: Date.now()/1000}, serviceType: 'Calhas',
+                        budgetDate: '2023-10-01', contractDate: '2023-10-05', billingDate: '2023-10-20', revenueDate: '2023-10-25'
+                    }],
+                    'employees': [{ id: 1, name: 'João Silva', isActive: true, cpf: '12345678900', role: 'Instalador', phone: '119999999', salary: 2500, extraValue: 150, courses: { safety: { expiration: '2023-01-01' } } }],
                     'materials': [{ id: 1, name: 'Chapa Galv. 28', status: 'Em Estoque', orderDate: '2023-10-01', type: 'Chapas', quantity: 50, unit: 'm', cost: 45.00 }],
-                    'payables': [{ id: 1, description: 'Conta de Luz', category: 'Fixa', amount: 350.50, dueDate: this.selectedMonth + '-15', isPaid: false }]
+                    'payables': [{ id: 1, description: 'Conta de Luz', category: 'Fixa', amount: 350.50, dueDate: this.selectedMonth + '-15', isPaid: false }],
+                    'projectCosts': [{ id: 1, projectCustomId: 1001, clientName: 'Padaria Central', totalCost: 150.00, createdAt: {seconds: Date.now()/1000}, costs: { meal: 50, transport: 100 } }]
                 };
                 if(this[arrayName].length === 0) this[arrayName] = mocks[arrayName] || [];
             },
@@ -897,28 +1445,39 @@
                 this.isSaving = true;
                 const data = { ...this.currentItem };
                 
-                // Conversão de Status do Funcionário para Boolean (Correção)
+                // Conversão de Status do Funcionário
                 if (this.modalType === 'employee') {
-                    // Garante que "true"/"false" vire true/false booleano
                     data.isActive = String(data.isActive) === 'true';
                 }
 
+                // Cálculo de Total para Custos e Preparação
+                if (this.modalType === 'cost') {
+                    data.totalCost = this.calculatedTotalCost;
+                }
+
                 // Sanitização numérica
-                ['value', 'amount', 'salary', 'extraValue', 'cost', 'quantity'].forEach(field => {
+                ['value', 'contractValue', 'serviceValue', 'amount', 'salary', 'extraValue', 'cost', 'quantity'].forEach(field => {
                     if(data[field]) data[field] = parseFloat(data[field]);
                 });
                 
-                // Remove campos auxiliares que não vão pro banco
+                // Lógica de ID Sequencial (Apenas para Projetos Novos)
+                if (this.modalType === 'project' && !this.isEditing) {
+                    if (this.linkToExisting && this.selectedParentId) {
+                        data.customId = parseInt(this.selectedParentId);
+                    } else {
+                        data.customId = this.nextId;
+                    }
+                }
+
+                // Remove campos auxiliares
                 const repeatCount = parseInt(data.repeatCount || 1);
                 delete data.repeatCount;
 
                 // Salvar Data Editável (Projetos)
                 if (this.modalType === 'project' && data.date) {
-                    // Converte string YYYY-MM-DD para timestamp
-                    // Usamos hora 12:00 para evitar problemas de fuso
                     const dateObj = new Date(data.date + 'T12:00:00'); 
                     data.createdAt = { seconds: dateObj.getTime() / 1000 };
-                    delete data.date; // Remove o campo auxiliar
+                    delete data.date; 
                 } else if (!data.createdAt) {
                     data.createdAt = { seconds: Date.now() / 1000 };
                 }
@@ -927,43 +1486,44 @@
                     if (db) {
                         const collectionName = this.modalType === 'project' ? 'orcamentos' : 
                                                this.modalType === 'employee' ? 'funcionarios' :
-                                               this.modalType === 'material' ? 'materiais' : 'financeiro';
+                                               this.modalType === 'material' ? 'materiais' : 
+                                               this.modalType === 'cost' ? 'custos_obra' : 'financeiro';
                         
                         const colRef = collection(db, collectionName);
                         
                         if (this.isEditing && this.currentItem.id) {
                             await updateDoc(doc(colRef, this.currentItem.id), data);
                         } else {
-                            // Lógica de Repetição para Contas a Pagar
                             if (this.modalType === 'payable' && repeatCount > 1) {
                                 const baseDate = new Date(data.dueDate);
                                 for(let i = 0; i < repeatCount; i++) {
                                     const newDate = new Date(baseDate);
                                     newDate.setMonth(baseDate.getMonth() + i);
-                                    
-                                    const payload = { 
-                                        ...data, 
-                                        dueDate: newDate.toISOString().split('T')[0],
-                                        createdAt: { seconds: Date.now() / 1000 } // Novo timestamp pra cada
-                                    };
+                                    const payload = { ...data, dueDate: newDate.toISOString().split('T')[0], createdAt: { seconds: Date.now() / 1000 } };
                                     await addDoc(colRef, payload);
                                 }
                             } else {
-                                // Salvamento padrão para 1 item
-                                data.createdAt = new Date(); // Timestamp servidor
-                                if (this.modalType === 'project' && this.currentItem.date) {
-                                     const dateObj = new Date(this.currentItem.date + 'T12:00:00');
-                                     data.createdAt = { seconds: dateObj.getTime() / 1000 };
+                                if (this.modalType === 'project' && !data.createdAt) {
+                                     data.createdAt = new Date();
                                 }
                                 await addDoc(colRef, data);
+
+                                if (this.modalType === 'project' && this.hasLabor) {
+                                    const laborData = { ...data };
+                                    delete laborData.id;
+                                    laborData.description = "Mão de Obra - " + (data.serviceType || 'Serviço');
+                                    laborData.serviceType = 'Outros'; 
+                                    laborData.serviceValue = (parseFloat(data.serviceValue) || 0) * 0.20;
+                                    laborData.createdAt = new Date(); 
+                                    await addDoc(colRef, laborData);
+                                }
                             }
                         }
                     } else {
-                        // Mock Save Logic
+                        // Mock
                         await new Promise(r => setTimeout(r, 500));
-                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables' };
+                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts' };
                         const arrName = targetArrayMap[this.modalType];
-                        
                         if (this.isEditing) {
                             const idx = this[arrName].findIndex(i => i.id === this.currentItem.id);
                             if(idx !== -1) this[arrName][idx] = { ...data, id: this.currentItem.id };
@@ -978,68 +1538,116 @@
                 } finally { this.isSaving = false; }
             },
 
-            async deleteItem() {
-                if (!confirm("Tem certeza?")) return;
+            async deleteItem(item = null) {
+                const targetId = item ? item.id : this.currentItem.id;
+                if (!targetId) return;
+                
+                if (!confirm("Tem certeza que deseja excluir?")) return;
+                
                 try {
                     if (db) {
                         const collectionName = this.modalType === 'project' ? 'orcamentos' : 
                                                this.modalType === 'employee' ? 'funcionarios' :
-                                               this.modalType === 'material' ? 'materiais' : 'financeiro';
-                        await deleteDoc(doc(db, collectionName, this.currentItem.id));
+                                               this.modalType === 'material' ? 'materiais' :
+                                               this.modalType === 'cost' ? 'custos_obra' : 'financeiro';
+                        
+                        let colName = collectionName;
+                        if (item) {
+                             if (this.currentView === 'employees') colName = 'funcionarios';
+                             else if (this.currentView === 'materials') colName = 'materiais';
+                             else if (this.currentView === 'payables') colName = 'financeiro';
+                             else if (this.currentView === 'costs') colName = 'custos_obra';
+                             else colName = 'orcamentos';
+                        }
+
+                        await deleteDoc(doc(db, colName, targetId));
                     } else {
-                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables' };
+                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts' };
                          const arrName = targetArrayMap[this.modalType];
-                        this[arrName] = this[arrName].filter(i => i.id !== this.currentItem.id);
+                        this[arrName] = this[arrName].filter(i => i.id !== targetId);
                     }
-                    this.closeModal();
+                    if (this.showModal) this.closeModal();
                 } catch (e) { console.error(e); }
             },
 
             async togglePaid(bill) {
                 const newState = !bill.isPaid;
                 
-                // 1. Atualização Otimista no Local (Imediata)
-                // Encontra a conta no array local e atualiza o status para recalcular os KPIs instantaneamente
-                const index = this.payables.findIndex(p => p.id === bill.id);
-                if (index !== -1) {
-                    this.payables[index].isPaid = newState;
-                    // Força a reatividade do Alpine se necessário (para arrays complexos)
-                    this.payables = [...this.payables];
-                }
-
-                // 2. Atualização no Banco de Dados
-                if (db) {
-                    await updateDoc(doc(db, 'financeiro', bill.id), { isPaid: newState });
+                if (bill.isAuto) {
+                    // Se for automático, cria um registro REAL
+                    const payload = {
+                        description: bill.description,
+                        category: bill.category,
+                        amount: bill.amount,
+                        dueDate: bill.dueDate,
+                        isPaid: newState,
+                        createdAt: { seconds: Date.now() / 1000 }
+                    };
+                    if (db) {
+                        await addDoc(collection(db, 'financeiro'), payload);
+                    }
+                } else {
+                    if (db) {
+                        await updateDoc(doc(db, 'financeiro', bill.id), { isPaid: newState });
+                    }
                 }
             },
 
             // --- UI HELPERS ---
             openModal() {
                 this.resetForm();
-                // Determinar tipo de modal baseado na view
-                if(this.currentView === 'kanban' || this.currentView === 'list') this.modalType = 'project';
+                if(this.currentView === 'kanban' || this.currentView === 'list' || this.currentView === 'counter') this.modalType = 'project';
                 else if(this.currentView === 'employees') this.modalType = 'employee';
                 else if(this.currentView === 'materials') this.modalType = 'material';
                 else if(this.currentView === 'payables') this.modalType = 'payable';
-                
+                else if(this.currentView === 'costs') this.modalType = 'cost';
                 this.showModal = true;
             },
 
             editItem(item) {
                 this.currentItem = { ...item };
                 this.isEditing = true;
+                this.linkToExisting = false; // Resetar
                 
-                if (this.currentView === 'employees') this.modalType = 'employee';
+                if (this.currentView === 'employees') {
+                    this.modalType = 'employee';
+                    // Inicializa estrutura de cursos se nao existir
+                    if (!this.currentItem.courses) {
+                         this.currentItem.courses = { safety: {}, machinery: {}, rappel: {}, measurement: {} };
+                    }
+                }
                 else if (this.currentView === 'materials') this.modalType = 'material';
                 else if (this.currentView === 'payables') this.modalType = 'payable';
+                else if (this.currentView === 'costs') {
+                    this.modalType = 'cost';
+                    this.costChecks = {
+                        material: !!item.costs?.material,
+                        meal: !!item.costs?.meal,
+                        painting: !!item.costs?.painting,
+                        operational: !!item.costs?.operational,
+                        transport: !!item.costs?.transport,
+                        unforeseen: !!item.costs?.unforeseen,
+                        tax: !!item.costs?.tax
+                    };
+                    if (item.costs?.materials && Object.keys(item.costs.materials).length > 0) {
+                        this.costChecks.material = true;
+                    }
+                    if (!this.currentItem.costs.materials) {
+                        this.currentItem.costs.materials = {
+                            'PU/Vedante': {qty: '', unitCost: ''},
+                            'Rebite': {qty: '', unitCost: ''},
+                            'Capacete': {qty: '', unitCost: ''},
+                            'Porca': {qty: '', unitCost: ''},
+                            'Parafuso': {qty: '', unitCost: ''}
+                        };
+                    }
+                }
                 else {
                     this.modalType = 'project';
-                    // Preparar data para edição (Timestamp -> YYYY-MM-DD)
                     if (item.createdAt) {
                         this.currentItem.date = this.formatDateRawISO(item.createdAt);
                     }
                 }
-
                 this.showModal = true;
             },
 
@@ -1051,19 +1659,43 @@
             resetForm() {
                 this.isEditing = false;
                 this.currentItem = {};
-                if(this.currentView === 'kanban' || this.currentView === 'list') {
-                    // Data de hoje como padrão para novos orçamentos
+                this.linkToExisting = false;
+                this.selectedParentId = '';
+                this.hasLabor = false; // Resetar checkbox
+                this.filterId = ''; // Resetar filtros
+                this.costChecks = { material: false, meal: false, painting: false, operational: false, transport: false, unforeseen: false, tax: false };
+                
+                if(this.currentView === 'kanban' || this.currentView === 'list' || this.currentView === 'counter') {
                     const today = new Date().toISOString().split('T')[0];
-                    this.currentItem = { serviceType: 'Calhas', status: 'lead', date: today };
+                    this.currentItem = { serviceType: 'Calhas', status: 'lead', date: today, budgetDate: today };
                 }
                 if(this.currentView === 'materials') this.currentItem = { unit: 'un', type: 'Chapas', status: 'Em Estoque', orderDate: new Date().toISOString().split('T')[0] };
-                if(this.currentView === 'employees') this.currentItem = { isActive: true }; // Padrão Ativo
-                if(this.currentView === 'payables') this.currentItem = { category: 'Fixa', isPaid: false, dueDate: this.selectedMonth + '-10', repeatCount: 1 };
+                if(this.currentView === 'employees') {
+                    this.currentItem = { isActive: true, courses: { safety: {}, machinery: {}, rappel: {}, measurement: {} } };
+                }
+                if(this.currentView === 'payables') {
+                    // FORCE isAuto false for NEW records
+                    this.currentItem = { category: 'Fixa', isPaid: false, dueDate: this.selectedMonth + '-10', repeatCount: 1, isAuto: false };
+                }
+                if(this.currentView === 'costs') {
+                    this.currentItem = { 
+                        costs: {
+                            materials: {
+                                'PU/Vedante': {qty: '', unitCost: ''},
+                                'Rebite': {qty: '', unitCost: ''},
+                                'Capacete': {qty: '', unitCost: ''},
+                                'Porca': {qty: '', unitCost: ''},
+                                'Parafuso': {qty: '', unitCost: ''}
+                            }
+                        } 
+                    };
+                }
             },
 
             // --- FORMATTERS & UTILS ---
-            getProjectsByStatus(statusId) { return this.projects.filter(i => i.status === statusId); },
-            getItemsCount(statusId) { return this.projects.filter(i => i.status === statusId).length; },
+            getProjectsByStatus(statusId) { return this.filteredProjects.filter(i => i.status === statusId); },
+            getFilteredProjectsByStatus(statusId) { return this.filteredProjects.filter(i => i.status === statusId); },
+            getItemsCount(statusId) { return this.filteredProjects.filter(i => i.status === statusId).length; },
             
             getStatusLabel(statusId) {
                 const status = this.kanbanColumns.find(c => c.id === statusId);
@@ -1071,9 +1703,9 @@
             },
             
             getStatusTotalValue(statusId) {
-                const total = this.projects
+                const total = this.filteredProjects
                     .filter(i => i.status === statusId)
-                    .reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0);
+                    .reduce((acc, curr) => acc + (parseFloat(curr.serviceValue) || 0), 0); // Soma valor do SERVIÇO
                 return this.formatMoney(total);
             },
             
@@ -1096,7 +1728,6 @@
             
             formatDate(timestamp) {
                 if (!timestamp) return '';
-                // Handle pure JS Date or Firebase Timestamp
                 const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
                 return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
             },
@@ -1104,7 +1735,7 @@
             formatDateRaw(dateString) {
                 if(!dateString) return '';
                 const parts = dateString.split('-');
-                return `${parts[2]}/${parts[1]}`;
+                return `${parts[2]}/${parts[1]}`; // Exibe apenas DD/MM
             },
             
             formatDateRawISO(timestamp) {
