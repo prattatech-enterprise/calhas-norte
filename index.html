@@ -8,6 +8,8 @@
     <!-- Bibliotecas de Estilo e Ícones -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js para Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
         tailwind.config = {
@@ -146,6 +148,13 @@
 
                 <div class="mt-6">
                     <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Gestão Interna</p>
+
+                    <a href="#" @click.prevent="setView('profitability')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'profitability' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="pie-chart" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'profitability' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        DRE por Obra
+                    </a>
                     
                     <a href="#" @click.prevent="setView('employees')" 
                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
@@ -191,7 +200,7 @@
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <button @click="openModal()" class="bg-accent-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-sm" x-show="currentView !== 'invoices'">
+                    <button @click="openModal()" class="bg-accent-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-sm" x-show="currentView !== 'invoices' && currentView !== 'profitability'">
                         <i data-lucide="plus" class="w-4 h-4"></i> 
                         <span class="hidden sm:inline" x-text="addButtonText"></span>
                     </button>
@@ -201,15 +210,15 @@
             <!-- Área Principal -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
                 
-                <!-- Filtros para Views de Obras e Balcão -->
-                <div x-show="['kanban', 'list', 'counter'].includes(currentView)" class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                <!-- Filtros para Views de Obras, Balcão e DRE -->
+                <div x-show="['kanban', 'list', 'counter', 'profitability'].includes(currentView)" class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                     <!-- Filtro ID -->
                     <div class="flex flex-col gap-1">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Buscar ID</label>
+                        <label class="text-xs font-bold text-slate-500 uppercase">Buscar ID Obra</label>
                         <input type="text" x-model="filterId" placeholder="Ex: 1001" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full">
                     </div>
-                    <!-- Filtro Serviço -->
-                    <div class="flex flex-col gap-1">
+                    <!-- Filtro Serviço (Esconder no DRE) -->
+                    <div class="flex flex-col gap-1" x-show="currentView !== 'profitability'">
                         <label class="text-xs font-bold text-slate-500 uppercase">Serviço</label>
                         <select x-model="filterService" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full bg-white">
                             <option value="">Todos</option>
@@ -220,8 +229,8 @@
                             <option value="Outros">Outros</option>
                         </select>
                     </div>
-                    <!-- Filtro Status -->
-                    <div class="flex flex-col gap-1">
+                    <!-- Filtro Status (Esconder no DRE) -->
+                    <div class="flex flex-col gap-1" x-show="currentView !== 'profitability'">
                         <label class="text-xs font-bold text-slate-500 uppercase">Status</label>
                         <select x-model="filterStatus" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full bg-white">
                             <option value="">Todos</option>
@@ -230,8 +239,8 @@
                             </template>
                         </select>
                     </div>
-                    <!-- Filtro Data Tipo -->
-                    <div class="flex flex-col gap-1">
+                    <!-- Filtro Data Tipo (Esconder no DRE se usar apenas um tipo) -->
+                    <div class="flex flex-col gap-1" x-show="currentView !== 'profitability'">
                         <label class="text-xs font-bold text-slate-500 uppercase">Data Ref.</label>
                         <select x-model="filterDateType" class="border border-slate-300 rounded px-2 py-1.5 text-sm bg-white cursor-pointer hover:border-brand-500 focus:ring-brand-500 w-full">
                             <option value="createdAt">Criação (Geral)</option>
@@ -242,7 +251,7 @@
                         </select>
                     </div>
                     <!-- Filtro Datas Intervalo -->
-                    <div class="flex gap-2 w-full">
+                    <div class="flex gap-2 w-full col-span-2 lg:col-span-2">
                         <div class="flex-1 flex flex-col gap-1">
                             <label class="text-xs font-bold text-slate-500 uppercase">De</label>
                             <input type="date" x-model="filterStartDate" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full">
@@ -252,7 +261,7 @@
                             <input type="date" x-model="filterEndDate" class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full">
                         </div>
                     </div>
-                    <div class="sm:col-span-2 lg:col-span-5 text-right">
+                    <div class="sm:col-span-2 lg:col-span-1 text-right self-end">
                         <button @click="resetFilters()" class="text-sm text-brand-600 hover:text-brand-800 underline">Limpar Filtros</button>
                     </div>
                 </div>
@@ -278,6 +287,81 @@
                         <div>
                             <p class="text-xs text-slate-500 uppercase font-bold" x-text="currentView === 'counter' ? 'Vendas Balcão' : 'Pedidos em Obras'"></p>
                             <p class="font-bold text-slate-800 text-lg" x-text="kpis.activeWorks"></p>
+                        </div>
+                     </div>
+                </div>
+
+                <!-- VIEW 8: DRE POR OBRA (NOVA) -->
+                <div x-show="currentView === 'profitability'" class="space-y-6">
+                     <!-- KPIs DRE -->
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+                             <h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Total Serviços (Receita)</h4>
+                             <p class="text-2xl font-bold text-slate-800" x-text="formatMoney(profitabilityData.totalServices)"></p>
+                         </div>
+                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
+                             <h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Custos Totais</h4>
+                             <p class="text-2xl font-bold text-slate-800" x-text="formatMoney(profitabilityData.totalCosts)"></p>
+                         </div>
+                         <div class="bg-white p-4 rounded-lg shadow border-l-4" :class="profitabilityData.grossProfit >= 0 ? 'border-green-500' : 'border-red-600'">
+                             <h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Lucro sobre Serviços</h4>
+                             <p class="text-2xl font-bold" :class="profitabilityData.grossProfit >= 0 ? 'text-green-600' : 'text-red-600'" x-text="formatMoney(profitabilityData.grossProfit)"></p>
+                             <p class="text-xs text-slate-400 mt-1">Margem: <span x-text="profitabilityData.margin + '%'"></span></p>
+                         </div>
+                         <!-- Mão de Obra (Informativo) -->
+                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-indigo-500">
+                             <h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Mão de Obra (Total)</h4>
+                             <p class="text-2xl font-bold text-slate-800" x-text="formatMoney(profitabilityData.totalLabor)"></p>
+                         </div>
+                     </div>
+
+                     <!-- Gráfico DRE -->
+                     <div class="bg-white p-4 rounded-lg shadow border border-slate-200">
+                         <h3 class="text-sm font-bold text-slate-700 mb-4">Comparativo Serviços vs Custos</h3>
+                         <div class="h-64 relative">
+                             <canvas id="profitabilityChart"></canvas>
+                         </div>
+                     </div>
+
+                     <!-- Tabela Detalhada DRE -->
+                     <div class="bg-white rounded-lg shadow overflow-hidden border border-slate-200 table-container">
+                        <div class="p-4 border-b border-slate-200 bg-slate-50">
+                            <h3 class="text-lg font-medium leading-6 text-slate-900">Detalhamento por Obra</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200 w-full">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ID Obra</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Vlr. Contrato</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Total Serviços</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Progresso %</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Total M. Obra</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Custos Totais</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Lucro R$</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Margem %</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-200">
+                                    <template x-for="row in profitabilityData.rows" :key="row.id">
+                                        <tr class="hover:bg-slate-50">
+                                            <td class="px-6 py-4 text-xs font-bold text-slate-500" x-text="'#' + row.customId"></td>
+                                            <td class="px-6 py-4 text-sm font-medium text-slate-900" x-text="row.clientName"></td>
+                                            <td class="px-6 py-4 text-sm text-right text-slate-500 font-medium" x-text="formatMoney(row.contractValue)"></td>
+                                            <td class="px-6 py-4 text-sm text-right text-blue-700 font-bold" x-text="formatMoney(row.totalServices)"></td>
+                                            <td class="px-6 py-4 text-sm text-right text-slate-500" x-text="row.progression + '%'"></td>
+                                            <td class="px-6 py-4 text-sm text-right text-indigo-600" x-text="formatMoney(row.totalLabor)"></td>
+                                            <td class="px-6 py-4 text-sm text-right text-red-600" x-text="formatMoney(row.cost)"></td>
+                                            <td class="px-6 py-4 text-sm text-right font-bold" :class="row.profit >= 0 ? 'text-green-600' : 'text-red-600'" x-text="formatMoney(row.profit)"></td>
+                                            <td class="px-6 py-4 text-sm text-right" x-text="row.margin + '%'"></td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="profitabilityData.rows.length === 0">
+                                        <td colspan="9" class="px-6 py-12 text-center text-slate-500">Nenhum dado encontrado para o filtro selecionado.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                      </div>
                 </div>
@@ -797,6 +881,31 @@
                                                 
                                                 <!-- Submenu de Materiais -->
                                                 <div x-show="costChecks.material" class="mt-2 pl-6 space-y-2 border-l-2 border-brand-200">
+                                                    
+                                                    <!-- Matéria Prima (Chapas) -->
+                                                    <div class="mb-3 p-2 bg-white rounded border border-slate-200">
+                                                        <div class="flex items-center gap-2 mb-2">
+                                                            <input type="checkbox" x-model="costChecks.rawMaterial" class="w-3 h-3 text-brand-600 rounded">
+                                                            <span class="text-xs font-bold text-slate-700">Chapa / Matéria Prima</span>
+                                                        </div>
+                                                        <div x-show="costChecks.rawMaterial" class="grid grid-cols-2 gap-2">
+                                                            <select x-model="currentItem.costs.materials['RawMaterial'].type" class="border rounded px-1 py-0.5 text-xs w-full">
+                                                                <option value="Galvanizada">Galvanizada</option>
+                                                                <option value="Galvalume">Galvalume</option>
+                                                                <option value="Inox">Inox</option>
+                                                                <option value="Alumínio">Alumínio</option>
+                                                            </select>
+                                                            <select x-model="currentItem.costs.materials['RawMaterial'].thickness" class="border rounded px-1 py-0.5 text-xs w-full">
+                                                                <option value="0.43">0.43</option>
+                                                                <option value="0.50">0.50</option>
+                                                                <option value="0.65">0.65</option>
+                                                            </select>
+                                                            <input type="number" x-model="currentItem.costs.materials['RawMaterial'].meters" placeholder="Metragem (m)" class="border rounded px-1 py-0.5 text-xs w-full">
+                                                            <input type="number" step="0.01" x-model="currentItem.costs.materials['RawMaterial'].pricePerMeter" placeholder="R$ / Metro" class="border rounded px-1 py-0.5 text-xs w-full">
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Outros Materiais -->
                                                     <template x-for="matType in ['PU/Vedante', 'Rebite', 'Capacete', 'Porca', 'Parafuso']">
                                                         <div class="flex items-center gap-2">
                                                             <span class="text-xs text-slate-600 w-24" x-text="matType"></span>
@@ -1111,7 +1220,7 @@
             
             // Checklist de Custos (Controle de visibilidade dos inputs)
             costChecks: {
-                material: false, meal: false, painting: false, 
+                material: false, rawMaterial: false, meal: false, painting: false, 
                 operational: false, transport: false, unforeseen: false, tax: false
             },
 
@@ -1196,8 +1305,14 @@
                 
                 // Soma de Materiais Específicos
                 if(this.costChecks.material && c.materials) {
-                    Object.values(c.materials).forEach(m => {
-                        total += (parseFloat(m.qty) || 0) * (parseFloat(m.unitCost) || 0);
+                    Object.entries(c.materials).forEach(([key, m]) => {
+                        // Raw Material logic
+                        if (key === 'RawMaterial' && this.costChecks.rawMaterial) {
+                             total += (parseFloat(m.meters) || 0) * (parseFloat(m.pricePerMeter) || 0);
+                        } else {
+                             // Standard items
+                             total += (parseFloat(m.qty) || 0) * (parseFloat(m.unitCost) || 0);
+                        }
                     });
                 }
 
@@ -1277,7 +1392,7 @@
                     'kanban': 'Quadro de Serviços', 'list': 'Lista de Serviços',
                     'counter': 'Venda Balcão',
                     'employees': 'Gestão de Funcionários', 'materials': 'Estoque de Matéria Prima',
-                    'payables': 'Contas a Pagar', 'invoices': 'Emissão de Nota Fiscal', 'costs': 'Custos de Obra'
+                    'payables': 'Contas a Pagar', 'invoices': 'Emissão de Nota Fiscal', 'costs': 'Custos de Obra', 'profitability': 'DRE por Obra'
                 };
                 return map[this.currentView];
             },
@@ -1298,10 +1413,94 @@
                 };
                 return map[this.currentView];
             },
+            
+            get profitabilityData() {
+                // 1. Filtrar Projetos (pelo ID se houver, ou todos)
+                let targetCustomIds = this.projects
+                    .filter(p => !p.category || p.category === 'work') // Only works
+                    .map(p => p.customId)
+                    .filter((v, i, a) => a.indexOf(v) === i); // Unique IDs
+
+                if (this.filterId) {
+                    targetCustomIds = targetCustomIds.filter(id => (id + '').includes(this.filterId));
+                }
+                
+                targetCustomIds.sort((a, b) => b - a);
+
+                // 2. Build rows
+                const rows = targetCustomIds.map(cid => {
+                    // Get all items for this work
+                    const workItems = this.projects.filter(p => p.customId === cid);
+                    const mainItem = workItems[0] || {};
+                    const contractValue = parseFloat(mainItem.contractValue || 0);
+
+                    // Calculate Totals
+                    const sumServices = workItems
+                        .filter(i => !i.description?.includes('Mão de Obra'))
+                        .reduce((acc, curr) => acc + (parseFloat(curr.serviceValue) || 0), 0);
+                    
+                    const sumLabor = workItems
+                        .filter(i => i.description?.includes('Mão de Obra'))
+                        .reduce((acc, curr) => acc + (parseFloat(curr.serviceValue) || 0), 0);
+
+                    // Costs
+                    const relatedCosts = this.projectCosts
+                        .filter(c => c.projectCustomId === cid)
+                        .reduce((sum, c) => sum + (parseFloat(c.totalCost) || 0), 0);
+                    
+                    // Profit & Margin (Based on Services)
+                    const profit = sumServices - relatedCosts;
+                    const margin = sumServices > 0 ? ((profit / sumServices) * 100).toFixed(1) : 0;
+                    
+                    // Progression
+                    const progression = contractValue > 0 ? ((sumServices / contractValue) * 100).toFixed(1) : 0;
+
+                    return {
+                        id: mainItem.id, // reference
+                        customId: cid,
+                        clientName: mainItem.clientName,
+                        contractValue: contractValue,
+                        totalServices: sumServices,
+                        progression: progression,
+                        totalLabor: sumLabor,
+                        cost: relatedCosts,
+                        profit: profit,
+                        margin: margin
+                    };
+                });
+
+                // 3. Totals
+                const totalServices = rows.reduce((acc, r) => acc + r.totalServices, 0);
+                const totalLabor = rows.reduce((acc, r) => acc + r.totalLabor, 0);
+                const totalCosts = rows.reduce((acc, r) => acc + r.cost, 0);
+                const grossProfit = totalServices - totalCosts;
+                const totalMargin = totalServices > 0 ? ((grossProfit / totalServices) * 100).toFixed(1) : 0;
+
+                return {
+                    rows,
+                    totalServices,
+                    totalLabor,
+                    totalCosts,
+                    grossProfit,
+                    margin: totalMargin
+                };
+            },
 
             init() {
                 this.checkAuth();
-                this.$watch('currentView', () => setTimeout(() => lucide.createIcons(), 100));
+                this.$watch('currentView', (val) => {
+                    setTimeout(() => lucide.createIcons(), 100);
+                    if (val === 'profitability') {
+                        setTimeout(() => this.initProfitChart(), 300);
+                    }
+                });
+                
+                // Re-render chart when filter changes in profitability view
+                this.$watch('filterId', () => {
+                    if (this.currentView === 'profitability') {
+                        setTimeout(() => this.initProfitChart(), 300);
+                    }
+                });
                 
                 this.$watch('selectedParentId', (val) => {
                     if (val && this.linkToExisting) {
@@ -1328,6 +1527,49 @@
             },
 
             // --- METHODS ---
+            
+            initProfitChart() {
+                if(window.profitChartInstance) window.profitChartInstance.destroy();
+                
+                const ctx = document.getElementById('profitabilityChart');
+                if(!ctx) return;
+
+                const data = this.profitabilityData;
+                
+                // Prepare labels (Project IDs) and data
+                // Limit to top 10 projects for readability if too many
+                const displayRows = data.rows.slice(0, 10);
+                
+                const labels = displayRows.map(r => `#${r.customId}`);
+                const revenues = displayRows.map(r => r.totalServices);
+                const costs = displayRows.map(r => r.cost);
+
+                window.profitChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Receita (Serviços)',
+                                data: revenues,
+                                backgroundColor: '#22c55e',
+                            },
+                            {
+                                label: 'Despesas',
+                                data: costs,
+                                backgroundColor: '#ef4444',
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            },
             
             updateCostProjectData() {
                 if (this.modalType === 'cost' && this.currentItem.projectRefId) {
@@ -1622,6 +1864,7 @@
                     this.modalType = 'cost';
                     this.costChecks = {
                         material: !!item.costs?.material,
+                        rawMaterial: !!item.costs?.materials?.['RawMaterial']?.meters, // Verifica se tem metragem salva
                         meal: !!item.costs?.meal,
                         painting: !!item.costs?.painting,
                         operational: !!item.costs?.operational,
@@ -1629,17 +1872,26 @@
                         unforeseen: !!item.costs?.unforeseen,
                         tax: !!item.costs?.tax
                     };
-                    if (item.costs?.materials && Object.keys(item.costs.materials).length > 0) {
-                        this.costChecks.material = true;
+                    
+                    if (item.costs?.materials) {
+                         // Mantém material genérico checkado se houver outros itens além de RawMaterial
+                         const hasOtherMats = Object.keys(item.costs.materials).some(k => k !== 'RawMaterial' && (item.costs.materials[k].qty > 0));
+                         this.costChecks.material = hasOtherMats || this.costChecks.rawMaterial;
                     }
+
                     if (!this.currentItem.costs.materials) {
                         this.currentItem.costs.materials = {
+                            'RawMaterial': {type: 'Galvanizada', thickness: '0.43', meters: '', pricePerMeter: ''},
                             'PU/Vedante': {qty: '', unitCost: ''},
                             'Rebite': {qty: '', unitCost: ''},
                             'Capacete': {qty: '', unitCost: ''},
                             'Porca': {qty: '', unitCost: ''},
                             'Parafuso': {qty: '', unitCost: ''}
                         };
+                    }
+                    // Garantir que RawMaterial exista se for edição antiga
+                    if(!this.currentItem.costs.materials['RawMaterial']) {
+                        this.currentItem.costs.materials['RawMaterial'] = {type: 'Galvanizada', thickness: '0.43', meters: '', pricePerMeter: ''};
                     }
                 }
                 else {
@@ -1663,7 +1915,7 @@
                 this.selectedParentId = '';
                 this.hasLabor = false; // Resetar checkbox
                 this.filterId = ''; // Resetar filtros
-                this.costChecks = { material: false, meal: false, painting: false, operational: false, transport: false, unforeseen: false, tax: false };
+                this.costChecks = { material: false, rawMaterial: false, meal: false, painting: false, operational: false, transport: false, unforeseen: false, tax: false };
                 
                 if(this.currentView === 'kanban' || this.currentView === 'list' || this.currentView === 'counter') {
                     const today = new Date().toISOString().split('T')[0];
@@ -1681,6 +1933,7 @@
                     this.currentItem = { 
                         costs: {
                             materials: {
+                                'RawMaterial': {type: 'Galvanizada', thickness: '0.43', meters: '', pricePerMeter: ''},
                                 'PU/Vedante': {qty: '', unitCost: ''},
                                 'Rebite': {qty: '', unitCost: ''},
                                 'Capacete': {qty: '', unitCost: ''},
