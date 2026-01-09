@@ -147,6 +147,24 @@
                 </a>
 
                 <div class="mt-6">
+                    <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Cadastros Gerais</p>
+                    
+                    <a href="#" @click.prevent="setView('clients')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'clients' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="user-plus" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'clients' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Clientes
+                    </a>
+
+                    <a href="#" @click.prevent="setView('products_mgr')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'products_mgr' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="tag" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'products_mgr' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Produtos
+                    </a>
+                </div>
+
+                <div class="mt-6">
                     <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Gestão Interna</p>
 
                     <a href="#" @click.prevent="setView('profitability')" 
@@ -200,6 +218,20 @@
                 </div>
 
                 <div class="flex items-center gap-4">
+                    <!-- Botões de Ação para Clientes e Produtos -->
+                    <div x-show="currentView === 'clients'" class="flex gap-2">
+                        <button @click="$refs.clientFile.click()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i> Importar CSV
+                        </button>
+                        <input type="file" x-ref="clientFile" class="hidden" accept=".csv" @change="handleFileUpload($event, 'clients')">
+                    </div>
+                    <div x-show="currentView === 'products_mgr'" class="flex gap-2">
+                        <button @click="$refs.productFile.click()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i> Importar CSV
+                        </button>
+                        <input type="file" x-ref="productFile" class="hidden" accept=".csv" @change="handleFileUpload($event, 'products')">
+                    </div>
+
                     <button @click="openModal()" class="bg-accent-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-sm" x-show="currentView !== 'invoices' && currentView !== 'profitability'">
                         <i data-lucide="plus" class="w-4 h-4"></i> 
                         <span class="hidden sm:inline" x-text="addButtonText"></span>
@@ -291,7 +323,7 @@
                      </div>
                 </div>
 
-                <!-- VIEW 8: DRE POR OBRA (NOVA) -->
+                <!-- VIEW 8: DRE POR OBRA -->
                 <div x-show="currentView === 'profitability'" class="space-y-6">
                      <!-- KPIs DRE -->
                      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -308,11 +340,6 @@
                              <p class="text-2xl font-bold" :class="profitabilityData.grossProfit >= 0 ? 'text-green-600' : 'text-red-600'" x-text="formatMoney(profitabilityData.grossProfit)"></p>
                              <p class="text-xs text-slate-400 mt-1">Margem: <span x-text="profitabilityData.margin + '%'"></span></p>
                          </div>
-                         <!-- Mão de Obra (Informativo) -->
-                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-indigo-500">
-                             <h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Mão de Obra (Total)</h4>
-                             <p class="text-2xl font-bold text-slate-800" x-text="formatMoney(profitabilityData.totalLabor)"></p>
-                         </div>
                      </div>
 
                      <!-- Gráfico DRE -->
@@ -325,9 +352,6 @@
 
                      <!-- Tabela Detalhada DRE -->
                      <div class="bg-white rounded-lg shadow overflow-hidden border border-slate-200 table-container">
-                        <div class="p-4 border-b border-slate-200 bg-slate-50">
-                            <h3 class="text-lg font-medium leading-6 text-slate-900">Detalhamento por Obra</h3>
-                        </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-200 w-full">
                                 <thead class="bg-slate-50">
@@ -336,8 +360,6 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</th>
                                         <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Vlr. Contrato</th>
                                         <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Total Serviços</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Progresso %</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Total M. Obra</th>
                                         <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Custos Totais</th>
                                         <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Lucro R$</th>
                                         <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Margem %</th>
@@ -350,20 +372,95 @@
                                             <td class="px-6 py-4 text-sm font-medium text-slate-900" x-text="row.clientName"></td>
                                             <td class="px-6 py-4 text-sm text-right text-slate-500 font-medium" x-text="formatMoney(row.contractValue)"></td>
                                             <td class="px-6 py-4 text-sm text-right text-blue-700 font-bold" x-text="formatMoney(row.totalServices)"></td>
-                                            <td class="px-6 py-4 text-sm text-right text-slate-500" x-text="row.progression + '%'"></td>
-                                            <td class="px-6 py-4 text-sm text-right text-indigo-600" x-text="formatMoney(row.totalLabor)"></td>
                                             <td class="px-6 py-4 text-sm text-right text-red-600" x-text="formatMoney(row.cost)"></td>
                                             <td class="px-6 py-4 text-sm text-right font-bold" :class="row.profit >= 0 ? 'text-green-600' : 'text-red-600'" x-text="formatMoney(row.profit)"></td>
                                             <td class="px-6 py-4 text-sm text-right" x-text="row.margin + '%'"></td>
                                         </tr>
                                     </template>
-                                    <tr x-show="profitabilityData.rows.length === 0">
-                                        <td colspan="9" class="px-6 py-12 text-center text-slate-500">Nenhum dado encontrado para o filtro selecionado.</td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                      </div>
+                </div>
+
+                <!-- VIEW 9: CLIENTES (NOVA) -->
+                <div x-show="currentView === 'clients'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cód</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nome / Razão</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">CNPJ/CPF</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contato</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cidade/UF</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200">
+                                <template x-for="client in sortedClients" :key="client.id">
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4 text-xs font-bold text-slate-500" x-text="client.code"></td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm font-medium text-slate-900" x-text="client.fantasy || client.name"></div>
+                                            <div class="text-xs text-slate-500" x-text="client.name"></div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="formatCPF(client.document)"></td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-slate-700" x-text="formatPhone(client.cell || client.phone)"></div>
+                                            <div class="text-xs text-slate-500 truncate max-w-[150px]" x-text="client.email"></div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-slate-500">
+                                            <span x-text="client.city"></span>/<span x-text="client.state"></span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                            <button @click="editItem(client)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            <button @click="deleteItem(client)" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="clients.length === 0">
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">Nenhum cliente cadastrado.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VIEW 10: PRODUTOS (NOVA) -->
+                <div x-show="currentView === 'products_mgr'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cód</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Descrição</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Grupo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fornecedor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Preço Venda</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200">
+                                <template x-for="prod in products_catalog" :key="prod.id">
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4 text-xs font-bold text-slate-500" x-text="prod.code"></td>
+                                        <td class="px-6 py-4 text-sm font-medium text-slate-900" x-text="prod.description"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="prod.group"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="prod.supplier"></td>
+                                        <td class="px-6 py-4 text-sm font-bold text-slate-700" x-text="formatMoney(prod.price)"></td>
+                                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                            <button @click="editItem(prod)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            <button @click="deleteItem(prod)" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="products_catalog.length === 0">
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">Nenhum produto cadastrado.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- VIEW 1: KANBAN -->
@@ -380,7 +477,6 @@
                                             </div>
                                             <span class="bg-white px-2 py-0.5 rounded-full text-xs font-bold text-slate-500 border border-slate-200" x-text="getFilteredProjectsByStatus(status.id).length">0</span>
                                         </div>
-                                        <!-- Big Number por Coluna -->
                                         <div class="text-xs text-slate-500 font-medium pl-5">
                                             Total: <span class="text-slate-800 font-bold" x-text="getStatusTotalValue(status.id)"></span>
                                         </div>
@@ -424,15 +520,12 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]">ID / Cliente</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[15%]">Serviço</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[15%]">Status</th>
-                                    
-                                    <!-- Coluna de Datas Dinâmica -->
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]" x-show="currentView === 'list'">
                                         Datas (Orç / Cont / Fat / Rec)
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]" x-show="currentView === 'counter'">
                                         Datas (Venda / Fat)
                                     </th>
-
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[20%]">Valores</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider w-[10%]">Ações</th>
                                 </tr>
@@ -451,8 +544,6 @@
                                         <td class="px-6 py-4 cursor-pointer" @click="editItem(item)">
                                             <span class="px-2 py-1 text-xs font-semibold rounded-full" :class="getStatusColor(item.status)" x-text="getStatusLabel(item.status)"></span>
                                         </td>
-                                        
-                                        <!-- Datas: Lista Completa -->
                                         <td class="px-6 py-4 text-xs text-slate-600 space-y-1 cursor-pointer" @click="editItem(item)" x-show="currentView === 'list'">
                                             <div class="grid grid-cols-2 gap-1">
                                                 <span title="Orçamento">O: <span x-text="formatDateRaw(item.budgetDate)"></span></span>
@@ -461,14 +552,12 @@
                                                 <span title="Recebimento">R: <span x-text="formatDateRaw(item.revenueDate)"></span></span>
                                             </div>
                                         </td>
-                                        <!-- Datas: Balcão -->
                                         <td class="px-6 py-4 text-xs text-slate-600 space-y-1 cursor-pointer" @click="editItem(item)" x-show="currentView === 'counter'">
                                             <div class="grid grid-cols-1 gap-1">
                                                 <span title="Venda">Venda: <span x-text="formatDateRawISO(item.createdAt)"></span></span>
                                                 <span title="Faturamento">Fat: <span x-text="formatDateRaw(item.billingDate)"></span></span>
                                             </div>
                                         </td>
-
                                         <td class="px-6 py-4 cursor-pointer" @click="editItem(item)">
                                             <div class="text-xs text-slate-500" x-show="currentView === 'list'">Contrato: <span class="font-semibold text-slate-700" x-text="formatMoney(item.contractValue)"></span></div>
                                             <div class="text-xs text-slate-500">Serviço: <span class="font-bold text-brand-700" x-text="formatMoney(item.serviceValue)"></span></div>
@@ -479,15 +568,12 @@
                                         </td>
                                     </tr>
                                 </template>
-                                <tr x-show="filteredProjects.length === 0">
-                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">Nenhum registro encontrado com os filtros atuais.</td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- VIEW 7: CUSTOS DE OBRA (Melhorado) -->
+                <!-- VIEW 7: CUSTOS DE OBRA -->
                 <div x-show="currentView === 'costs'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200 table-container">
                     <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                         <h3 class="text-lg font-medium leading-6 text-slate-900">Histórico de Custos por Obra</h3>
@@ -517,9 +603,6 @@
                                         </td>
                                     </tr>
                                 </template>
-                                <tr x-show="projectCosts.length === 0">
-                                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">Nenhum custo registrado. Clique em "Novo Custo" para adicionar.</td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -529,7 +612,6 @@
                 <div x-show="currentView === 'invoices'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
                     <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                         <h3 class="text-lg font-medium leading-6 text-slate-900">Serviços Prontos para Faturamento</h3>
-                        <span class="text-xs text-slate-500">Listando obras concluídas ou aprovadas</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
@@ -540,7 +622,6 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Serviço</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Data Faturamento</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Valor Serviço</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status NF</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
                                 </tr>
                             </thead>
@@ -555,11 +636,6 @@
                                         <td class="px-6 py-4 text-sm text-slate-500" x-text="item.description || item.serviceType"></td>
                                         <td class="px-6 py-4 text-sm text-slate-500" x-text="formatDateRaw(item.billingDate)"></td>
                                         <td class="px-6 py-4 text-sm font-bold text-slate-700" x-text="formatMoney(item.serviceValue)"></td>
-                                        <td class="px-6 py-4">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                Pendente
-                                            </span>
-                                        </td>
                                         <td class="px-6 py-4 text-right">
                                             <button @click="alert('Simulação: Nota Fiscal gerada com sucesso!')" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none">
                                                 <i data-lucide="printer" class="w-3 h-3 mr-1.5"></i> Emitir Nota
@@ -567,15 +643,12 @@
                                         </td>
                                     </tr>
                                 </template>
-                                <tr x-show="projects.filter(p => ['concluido', 'instalacao'].includes(p.status)).length === 0">
-                                    <td colspan="7" class="px-6 py-12 text-center text-slate-500">Nenhum serviço pendente de faturamento.</td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- VIEW 3: FUNCIONÁRIOS (Atualizado com Cursos e Alerta) -->
+                <!-- VIEW 3: FUNCIONÁRIOS -->
                 <div x-show="currentView === 'employees'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
@@ -586,7 +659,6 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cargo</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Telefone</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Salário / Extra</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Funções Extras / Obs</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
                                 </tr>
                             </thead>
@@ -594,8 +666,7 @@
                                 <template x-for="emp in employees" :key="emp.id">
                                     <tr class="hover:bg-slate-50 transition cursor-pointer">
                                         <td class="px-6 py-4 cursor-pointer" @click="editItem(emp)">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
-                                                  :class="emp.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="emp.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                                                 <span x-text="emp.isActive ? 'Ativo' : 'Inativo'"></span>
                                             </span>
                                         </td>
@@ -605,7 +676,6 @@
                                                     <div class="text-sm font-medium text-slate-900" x-text="emp.name"></div>
                                                     <div class="text-xs text-slate-500" x-text="formatCPF(emp.cpf)"></div>
                                                 </div>
-                                                <!-- Alerta de Curso Vencido -->
                                                 <div x-show="hasExpiredCourse(emp)" class="text-red-500" title="Curso Vencido">
                                                     <i data-lucide="triangle-alert" class="w-5 h-5"></i>
                                                 </div>
@@ -617,7 +687,6 @@
                                             <div class="text-xs text-slate-500">Salário: <span class="font-bold text-slate-700" x-text="formatMoney(emp.salary)"></span></div>
                                             <div class="text-xs text-slate-500">Extra: <span class="font-bold text-success-600" x-text="formatMoney(emp.extraValue)"></span></div>
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-slate-500 italic" x-text="emp.extras || '-'"></td>
                                         <td class="px-6 py-4 text-right flex justify-end gap-2">
                                             <button @click="editItem(emp)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                                             <button @click="deleteItem(emp)" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -636,8 +705,7 @@
                             <thead class="bg-slate-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Item</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status / Data</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tipo/Categoria</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Qtd. Estoque</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Custo (Unit.)</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
@@ -649,9 +717,7 @@
                                         <td class="px-6 py-4 font-medium text-slate-900 cursor-pointer" @click="editItem(mat)" x-text="mat.name"></td>
                                         <td class="px-6 py-4 cursor-pointer" @click="editItem(mat)">
                                             <span class="inline-flex text-xs leading-5 font-semibold rounded-full px-2" :class="mat.status === 'Pedido Feito' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'" x-text="mat.status || 'Em Estoque'"></span>
-                                            <div class="text-xs text-slate-400 mt-1" x-text="formatDateRaw(mat.orderDate)"></div>
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="mat.type"></td>
                                         <td class="px-6 py-4 text-sm font-bold text-slate-700">
                                             <span x-text="mat.quantity"></span> <span x-text="mat.unit" class="text-xs font-normal text-slate-400"></span>
                                         </td>
@@ -669,17 +735,14 @@
 
                 <!-- VIEW 5: CONTAS A PAGAR -->
                 <div x-show="currentView === 'payables'" class="space-y-4">
-                    <!-- Filtro de Mês -->
                     <div class="flex items-center gap-4 bg-white p-3 rounded-lg shadow-sm border border-slate-200">
                         <label class="text-sm font-bold text-slate-600">Filtrar Mês:</label>
                         <input type="month" x-model="selectedMonth" class="border border-slate-300 rounded px-2 py-1 text-sm">
-                        
                         <div class="ml-auto flex gap-4 text-sm">
                             <div class="text-slate-500">Pendente: <span class="font-bold text-danger-500" x-text="formatMoney(filteredPayables.reduce((a,c) => !c.isPaid ? a + (parseFloat(c.amount)||0) : a, 0))"></span></div>
                             <div class="text-slate-500">Pago: <span class="font-bold text-success-500" x-text="formatMoney(filteredPayables.reduce((a,c) => c.isPaid ? a + (parseFloat(c.amount)||0) : a, 0))"></span></div>
                         </div>
                     </div>
-
                     <div class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-200">
@@ -697,7 +760,6 @@
                                     <template x-for="bill in filteredPayables" :key="bill.id">
                                         <tr class="hover:bg-slate-50 transition" :class="bill.isAuto ? 'bg-blue-50' : ''">
                                             <td class="px-4 py-4 text-center">
-                                                <!-- Click stop propagation para nao abrir edição ao clicar no check -->
                                                 <input type="checkbox" :checked="bill.isPaid" @click.stop="togglePaid(bill)" class="w-5 h-5 text-brand-600 rounded focus:ring-brand-500 cursor-pointer">
                                             </td>
                                             <td class="px-6 py-4 cursor-pointer" @click="editItem(bill)">
@@ -713,9 +775,6 @@
                                             </td>
                                         </tr>
                                     </template>
-                                    <tr x-show="filteredPayables.length === 0">
-                                        <td colspan="6" class="px-6 py-12 text-center text-slate-500">Nenhuma conta encontrada para este mês.</td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -724,8 +783,7 @@
 
             </main>
         </div>
-
-        <!-- Modal Dinâmico -->
+      <!-- Modal Dinâmico -->
         <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                 <div x-show="showModal" x-transition.opacity class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" @click="closeModal()"></div>
@@ -754,29 +812,22 @@
                                                 <span class="text-sm text-slate-600">Sim</span>
                                             </div>
                                         </div>
-                                        
-                                        <!-- Se vincular, mostra Select -->
                                         <div x-show="linkToExisting">
                                             <select x-model="selectedParentId" class="w-full px-3 py-2 border rounded-lg bg-yellow-50 border-yellow-300">
                                                 <option value="">Selecione uma obra...</option>
-                                                <!-- Filtra projetos únicos por ID para o dropdown -->
                                                 <template x-for="p in uniqueProjects" :key="p.customId">
                                                     <option :value="p.customId" x-text="'#' + p.customId + ' - ' + p.clientName"></option>
                                                 </template>
                                             </select>
                                         </div>
-                                        <!-- Se não, mostra ID automático -->
                                         <div x-show="!linkToExisting" class="text-sm text-slate-500 bg-slate-100 p-2 rounded">
                                             Será gerado novo ID: <strong x-text="'#' + nextId"></strong>
                                         </div>
                                     </div>
-
-                                    <!-- Campo ID visível apenas leitura na edição -->
                                     <div class="sm:col-span-2" x-show="isEditing">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ID da Obra</label>
                                         <input type="text" :value="'#' + currentItem.customId" disabled class="w-full px-3 py-2 border rounded-lg bg-slate-100 text-slate-500">
                                     </div>
-
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cliente</label>
                                         <input type="text" x-model="currentItem.clientName" class="w-full px-3 py-2 border rounded-lg" required>
@@ -803,8 +854,6 @@
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição</label>
                                         <textarea x-model="currentItem.description" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea>
                                     </div>
-                                    
-                                    <!-- Novos Campos de Valor -->
                                     <div x-show="currentView !== 'counter'">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Contrato (Total)</label>
                                         <input type="number" step="0.01" x-model="currentItem.contractValue" class="w-full px-3 py-2 border rounded-lg bg-slate-50">
@@ -813,7 +862,6 @@
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Serviço (Este Pedido)</label>
                                         <input type="number" step="0.01" x-model="currentItem.serviceValue" class="w-full px-3 py-2 border rounded-lg border-brand-300">
                                     </div>
-
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
                                         <select x-model="currentItem.status" class="w-full px-3 py-2 border rounded-lg">
@@ -822,14 +870,10 @@
                                             </template>
                                         </select>
                                     </div>
-
-                                    <!-- Campo Mão de Obra (Novo) -->
                                     <div class="sm:col-span-2 flex items-center gap-2 mt-2 p-2 bg-orange-50 rounded border border-orange-200" x-show="!isEditing && currentView !== 'counter'">
                                         <input type="checkbox" x-model="hasLabor" class="w-4 h-4 text-accent-600 focus:ring-accent-500">
                                         <span class="text-sm font-bold text-slate-700">Adicionar Mão de Obra (20%)?</span>
                                     </div>
-
-                                    <!-- Campos de Data -->
                                     <div class="sm:col-span-2 border-t border-slate-100 pt-4 mt-2">
                                         <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Datas de Acompanhamento</h4>
                                         <div class="grid grid-cols-2 gap-4">
@@ -854,7 +898,138 @@
                                 </div>
                             </template>
 
-                            <!-- FORM: CUSTOS (NOVO) -->
+                            <!-- FORM: CLIENTES (ATUALIZADO COMPLETO) -->
+                            <template x-if="modalType === 'client'">
+                                <div class="contents">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Código</label>
+                                        <!-- Código preenchido automaticamente, mas editável se necessário -->
+                                        <input type="text" x-model="currentItem.code" class="w-full px-3 py-2 border rounded-lg bg-slate-50" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">CNPJ/CPF</label>
+                                        <input type="text" x-model="currentItem.document" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Razão Social / Nome</label>
+                                        <input type="text" x-model="currentItem.name" class="w-full px-3 py-2 border rounded-lg" required>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome Fantasia</label>
+                                        <input type="text" x-model="currentItem.fantasy" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo Pessoa</label>
+                                        <select x-model="currentItem.type" class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="Fisica">Física</option>
+                                            <option value="Juridica">Jurídica</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data Cadastro</label>
+                                        <input type="date" x-model="currentItem.registerDate" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone</label>
+                                        <input type="text" x-model="currentItem.phone" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Celular</label>
+                                        <input type="text" x-model="currentItem.cell" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                                        <input type="email" x-model="currentItem.email" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    
+                                    <!-- Endereço Detalhado -->
+                                    <div class="sm:col-span-2 border-t border-slate-100 pt-4 mt-2 mb-2">
+                                        <h4 class="text-xs font-bold text-slate-400 uppercase">Endereço</h4>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">CEP</label>
+                                        <input type="text" x-model="currentItem.zip" class="w-full px-3 py-2 border rounded-lg" placeholder="00000-000">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Endereço (Logradouro)</label>
+                                        <input type="text" x-model="currentItem.address" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Número</label>
+                                        <input type="text" x-model="currentItem.number" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Complemento</label>
+                                        <input type="text" x-model="currentItem.complement" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Bairro</label>
+                                        <input type="text" x-model="currentItem.district" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cidade</label>
+                                        <input type="text" x-model="currentItem.city" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">UF</label>
+                                        <input type="text" x-model="currentItem.state" class="w-full px-3 py-2 border rounded-lg" maxlength="2">
+                                    </div>
+                                    
+                                    <div class="sm:col-span-2 mt-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Observação</label>
+                                        <textarea x-model="currentItem.notes" rows="3" class="w-full px-3 py-2 border rounded-lg"></textarea>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- FORM: PRODUTOS CATALOGO (NOVO) -->
+                            <template x-if="modalType === 'product'">
+                                <div class="contents">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Código</label>
+                                        <input type="text" x-model="currentItem.code" class="w-full px-3 py-2 border rounded-lg" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">NCM</label>
+                                        <input type="text" x-model="currentItem.ncm" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição</label>
+                                        <input type="text" x-model="currentItem.description" class="w-full px-3 py-2 border rounded-lg" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Preço Venda</label>
+                                        <input type="number" step="0.01" x-model="currentItem.price" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Vlr Unit. Compra</label>
+                                        <input type="number" step="0.01" x-model="currentItem.costPrice" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Grupo</label>
+                                        <input type="text" x-model="currentItem.group" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Subgrupo</label>
+                                        <input type="text" x-model="currentItem.subgroup" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Modelo</label>
+                                        <input type="text" x-model="currentItem.model" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data Última Compra</label>
+                                        <input type="date" x-model="currentItem.lastPurchaseDate" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fornecedor</label>
+                                        <input type="text" x-model="currentItem.supplier" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- FORM: CUSTOS -->
                             <template x-if="modalType === 'cost'">
                                 <div class="contents">
                                     <div class="sm:col-span-2">
@@ -982,36 +1157,13 @@
                                             <option value="false">Inativo (Desligado)</option>
                                         </select>
                                     </div>
-                                    <div class="sm:col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome Completo</label>
-                                        <input type="text" x-model="currentItem.name" class="w-full px-3 py-2 border rounded-lg" required>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">CPF (Apenas números)</label>
-                                        <input type="text" x-model="currentItem.cpf" class="w-full px-3 py-2 border rounded-lg" placeholder="00000000000">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone</label>
-                                        <input type="text" x-model="currentItem.phone" class="w-full px-3 py-2 border rounded-lg" placeholder="11999999999">
-                                    </div>
-                                    <div class="sm:col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cargo</label>
-                                        <input type="text" x-model="currentItem.role" class="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Instalador Sênior">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Salário Base</label>
-                                        <input type="number" step="0.01" x-model="currentItem.salary" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Extra (Obras)</label>
-                                        <input type="number" step="0.01" x-model="currentItem.extraValue" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00">
-                                    </div>
-                                    <div class="sm:col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Funções Extras / Obs</label>
-                                        <textarea x-model="currentItem.extras" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea>
-                                    </div>
-
-                                    <!-- Cursos Obrigatórios -->
+                                    <div class="sm:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome Completo</label><input type="text" x-model="currentItem.name" class="w-full px-3 py-2 border rounded-lg" required></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">CPF</label><input type="text" x-model="currentItem.cpf" class="w-full px-3 py-2 border rounded-lg" placeholder="00000000000"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone</label><input type="text" x-model="currentItem.phone" class="w-full px-3 py-2 border rounded-lg" placeholder="11999999999"></div>
+                                    <div class="sm:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cargo</label><input type="text" x-model="currentItem.role" class="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Instalador Sênior"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Salário Base</label><input type="number" step="0.01" x-model="currentItem.salary" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Extra</label><input type="number" step="0.01" x-model="currentItem.extraValue" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00"></div>
+                                    <div class="sm:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Funções Extras / Obs</label><textarea x-model="currentItem.extras" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea></div>
                                     <div class="sm:col-span-2 border-t border-slate-100 pt-4 mt-2">
                                         <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Cursos Obrigatórios</h4>
                                         <div class="space-y-3">
@@ -1019,14 +1171,8 @@
                                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-slate-50 rounded border border-slate-200">
                                                     <span class="text-sm font-medium text-slate-700 w-40" x-text="course.label"></span>
                                                     <div class="flex gap-2 flex-1">
-                                                        <div class="flex-1">
-                                                            <label class="block text-[10px] text-slate-400">Conclusão</label>
-                                                            <input type="date" x-model="currentItem.courses[course.key].completion" class="w-full px-2 py-1 border rounded text-xs">
-                                                        </div>
-                                                        <div class="flex-1">
-                                                            <label class="block text-[10px] text-slate-400">Vencimento</label>
-                                                            <input type="date" x-model="currentItem.courses[course.key].expiration" class="w-full px-2 py-1 border rounded text-xs" :class="isDateExpired(currentItem.courses[course.key].expiration) ? 'border-red-300 bg-red-50 text-red-700' : ''">
-                                                        </div>
+                                                        <div class="flex-1"><label class="block text-[10px] text-slate-400">Conclusão</label><input type="date" x-model="currentItem.courses[course.key].completion" class="w-full px-2 py-1 border rounded text-xs"></div>
+                                                        <div class="flex-1"><label class="block text-[10px] text-slate-400">Vencimento</label><input type="date" x-model="currentItem.courses[course.key].expiration" class="w-full px-2 py-1 border rounded text-xs" :class="isDateExpired(currentItem.courses[course.key].expiration) ? 'border-red-300 bg-red-50 text-red-700' : ''"></div>
                                                     </div>
                                                 </div>
                                             </template>
@@ -1038,88 +1184,24 @@
                             <!-- FORM: MATÉRIA PRIMA -->
                             <template x-if="modalType === 'material'">
                                 <div class="contents">
-                                    <div class="sm:col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Item</label>
-                                        <input type="text" x-model="currentItem.name" class="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Chapa Galvanizada 28" required>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
-                                        <select x-model="currentItem.status" class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="Em Estoque">Em Estoque</option>
-                                            <option value="Pedido Feito">Pedido Feito</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data do Pedido</label>
-                                        <input type="date" x-model="currentItem.orderDate" class="w-full px-3 py-2 border rounded-lg">
-                                    </div>
-                                    <div class="sm:col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo/Categoria</label>
-                                        <select x-model="currentItem.type" class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="Chapas">Chapas</option>
-                                            <option value="Acessórios">Acessórios (Rebite, Parafuso)</option>
-                                            <option value="Selantes">Selantes / PU</option>
-                                            <option value="Ferramentas">Ferramentas</option>
-                                            <option value="Outros">Outros</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Quantidade</label>
-                                        <input type="number" x-model="currentItem.quantity" class="w-full px-3 py-2 border rounded-lg">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Unidade</label>
-                                        <select x-model="currentItem.unit" class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="un">Unidade (un)</option>
-                                            <option value="kg">Quilo (kg)</option>
-                                            <option value="m">Metro (m)</option>
-                                            <option value="m2">Metro Quadrado (m²)</option>
-                                            <option value="cx">Caixa</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Custo / Valor Pago</label>
-                                        <input type="number" step="0.01" x-model="currentItem.cost" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00">
-                                    </div>
+                                    <div class="sm:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Item</label><input type="text" x-model="currentItem.name" class="w-full px-3 py-2 border rounded-lg" required></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label><select x-model="currentItem.status" class="w-full px-3 py-2 border rounded-lg"><option value="Em Estoque">Em Estoque</option><option value="Pedido Feito">Pedido Feito</option></select></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data do Pedido</label><input type="date" x-model="currentItem.orderDate" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div class="sm:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo/Categoria</label><select x-model="currentItem.type" class="w-full px-3 py-2 border rounded-lg"><option value="Chapas">Chapas</option><option value="Acessórios">Acessórios</option><option value="Selantes">Selantes</option><option value="Ferramentas">Ferramentas</option><option value="Outros">Outros</option></select></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Quantidade</label><input type="number" x-model="currentItem.quantity" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Unidade</label><select x-model="currentItem.unit" class="w-full px-3 py-2 border rounded-lg"><option value="un">un</option><option value="kg">kg</option><option value="m">m</option><option value="cx">cx</option></select></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Custo / Valor Pago</label><input type="number" step="0.01" x-model="currentItem.cost" class="w-full px-3 py-2 border rounded-lg"></div>
                                 </div>
                             </template>
 
                             <!-- FORM: CONTAS A PAGAR -->
                             <template x-if="modalType === 'payable'">
                                 <div class="contents">
-                                    <div class="sm:col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição</label>
-                                        <input type="text" x-model="currentItem.description" class="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Conta de Luz" required :disabled="currentItem.isAuto">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Categoria</label>
-                                        <select x-model="currentItem.category" class="w-full px-3 py-2 border rounded-lg" :disabled="currentItem.isAuto">
-                                            <option value="Fixa">Despesa Fixa (Água/Luz)</option>
-                                            <option value="Salario">Salários</option>
-                                            <option value="ExtraSalario">Valor Extra - Salário</option>
-                                            <option value="Vale">Vale (Adiantamento)</option>
-                                            <option value="Emprestimo">Empréstimos</option>
-                                            <option value="Fornecedor">Fornecedor</option>
-                                            <option value="Extra">Extra</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor</label>
-                                        <input type="number" step="0.01" x-model="currentItem.amount" class="w-full px-3 py-2 border rounded-lg" :disabled="currentItem.isAuto">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data de Vencimento</label>
-                                        <input type="date" x-model="currentItem.dueDate" class="w-full px-3 py-2 border rounded-lg" required>
-                                    </div>
-                                    <div x-show="!isEditing && !currentItem.isAuto" class="sm:col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Repetir por (meses)</label>
-                                        <input type="number" x-model="currentItem.repeatCount" min="1" max="24" class="w-full px-3 py-2 border rounded-lg" placeholder="1">
-                                        <p class="text-xs text-slate-400 mt-1">Deixe 1 para apenas este mês.</p>
-                                    </div>
-                                    <div class="sm:col-span-2 flex items-center gap-2">
-                                        <input type="checkbox" x-model="currentItem.isPaid" class="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500">
-                                        <label class="text-sm text-slate-700">Conta já está paga</label>
-                                    </div>
+                                    <div class="sm:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição</label><input type="text" x-model="currentItem.description" class="w-full px-3 py-2 border rounded-lg" required :disabled="currentItem.isAuto"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Categoria</label><select x-model="currentItem.category" class="w-full px-3 py-2 border rounded-lg" :disabled="currentItem.isAuto"><option value="Fixa">Despesa Fixa</option><option value="Salario">Salários</option><option value="Fornecedor">Fornecedor</option><option value="Extra">Extra</option></select></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor</label><input type="number" step="0.01" x-model="currentItem.amount" class="w-full px-3 py-2 border rounded-lg" :disabled="currentItem.isAuto"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data de Vencimento</label><input type="date" x-model="currentItem.dueDate" class="w-full px-3 py-2 border rounded-lg" required></div>
+                                    <div class="sm:col-span-2 flex items-center gap-2"><input type="checkbox" x-model="currentItem.isPaid" class="w-4 h-4 text-brand-600 rounded"><label class="text-sm text-slate-700">Conta já está paga</label></div>
                                 </div>
                             </template>
 
@@ -1143,11 +1225,9 @@
     <script type="module">
         import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/module.esm.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // Importando signInWithEmailAndPassword explicitamente
         import { getAuth, signInWithCustomToken, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuração do Firebase específica do projeto
         const customFirebaseConfig = {
             apiKey: "AIzaSyBh4O0---MzHE_F8AjeB3fVk3DxOGVHhdw",
             authDomain: "calhas-norte-b7c06.firebaseapp.com",
@@ -1176,11 +1256,12 @@
             if(type === 'employee') return `${root}/rh/funcionarios`;
             if(type === 'material') return `${root}/estoque/materiais`;
             if(type === 'payable') return `${root}/financeiro/contas`;
-            if(type === 'cost') return `${root}/financeiro/custos_obra`; // Nova Coleção
+            if(type === 'cost') return `${root}/financeiro/custos_obra`;
+            if(type === 'client') return `${root}/geral/clientes`; 
+            if(type === 'product') return `${root}/geral/produtos`; 
             return `${root}/geral/itens`;
         }
         
-        // Definição dos Cursos
         const COURSES_DEF = [
             { key: 'safety', label: 'Segurança do Trabalho' },
             { key: 'machinery', label: 'Manuseio de Maquinário' },
@@ -1200,14 +1281,12 @@
             // View State
             currentView: 'kanban', 
             sidebarOpen: false,
-            selectedMonth: new Date().toISOString().slice(0, 7), // YYYY-MM
+            selectedMonth: new Date().toISOString().slice(0, 7),
             
-            // Filtros de Data
+            // Filtros
             filterStartDate: '',
             filterEndDate: '',
-            filterDateType: 'createdAt', // Tipo de data para filtro
-            
-            // Filtros Extras
+            filterDateType: 'createdAt',
             filterId: '',
             filterService: '',
             filterStatus: '',
@@ -1218,7 +1297,6 @@
             hasLabor: false, 
             coursesDef: COURSES_DEF,
             
-            // Checklist de Custos (Controle de visibilidade dos inputs)
             costChecks: {
                 material: false, rawMaterial: false, meal: false, painting: false, 
                 operational: false, transport: false, unforeseen: false, tax: false
@@ -1229,7 +1307,9 @@
             employees: [],
             materials: [],
             payables: [],
-            projectCosts: [], // Novo Array de Custos
+            projectCosts: [],
+            clients: [],
+            products_catalog: [],
             
             // Modal State
             showModal: false,
@@ -1249,18 +1329,13 @@
 
             // Computeds
             get filteredProjects() {
-                // Filtro Base (View Balcão vs Obra)
                 let items = this.projects;
-                
                 if (this.currentView === 'counter') {
-                    // Balcão: Filtrar por categoria 'counter'
                     items = items.filter(p => p.category === 'counter');
                 } else if (['kanban', 'list', 'invoices'].includes(this.currentView)) {
-                    // Obras: Filtrar por categoria 'work' (padrão se vazio)
                     items = items.filter(p => !p.category || p.category === 'work');
                 }
 
-                // 1. Filtro de Data
                 if (this.filterStartDate || this.filterEndDate) {
                     if (this.filterDateType === 'createdAt') {
                         const start = this.filterStartDate ? new Date(this.filterStartDate).getTime() : 0;
@@ -1279,23 +1354,32 @@
                     }
                 }
 
-                // 2. Filtro ID
-                if (this.filterId) {
-                    items = items.filter(i => (i.customId + '').includes(this.filterId));
-                }
+                if (this.filterId) items = items.filter(i => (i.customId + '').includes(this.filterId));
+                if (this.filterService) items = items.filter(i => i.serviceType === this.filterService);
+                if (this.filterStatus) items = items.filter(i => i.status === this.filterStatus);
 
-                // 3. Filtro Serviço
-                if (this.filterService) {
-                    items = items.filter(i => i.serviceType === this.filterService);
-                }
-
-                // 4. Filtro Status
-                if (this.filterStatus) {
-                    items = items.filter(i => i.status === this.filterStatus);
-                }
-
-                // Ordenação: ID Descendente (Mais recente primeiro)
                 return items.sort((a, b) => (b.customId || 0) - (a.customId || 0));
+            },
+
+            // --- COMPUTED PARA CLIENTES (ORDENAÇÃO) ---
+            get sortedClients() {
+                return this.clients.sort((a, b) => {
+                    // Ordenação decrescente por código. Se código não for numérico, tenta string
+                    const codeA = parseInt(a.code) || 0;
+                    const codeB = parseInt(b.code) || 0;
+                    if (codeA !== 0 && codeB !== 0) return codeB - codeA;
+                    return (b.code || '').localeCompare(a.code || '');
+                });
+            },
+
+            get nextClientCode() {
+                if (this.clients.length === 0) return 1;
+                // Encontra o maior código numérico
+                const max = this.clients.reduce((acc, client) => {
+                    const code = parseInt(client.code) || 0;
+                    return code > acc ? code : acc;
+                }, 0);
+                return max + 1;
             },
 
             get calculatedTotalCost() {
@@ -1303,20 +1387,15 @@
                 const c = this.currentItem.costs;
                 let total = 0;
                 
-                // Soma de Materiais Específicos
                 if(this.costChecks.material && c.materials) {
                     Object.entries(c.materials).forEach(([key, m]) => {
-                        // Raw Material logic
                         if (key === 'RawMaterial' && this.costChecks.rawMaterial) {
                              total += (parseFloat(m.meters) || 0) * (parseFloat(m.pricePerMeter) || 0);
                         } else {
-                             // Standard items
                              total += (parseFloat(m.qty) || 0) * (parseFloat(m.unitCost) || 0);
                         }
                     });
                 }
-
-                // Soma dos Custos Fixos
                 if(this.costChecks.meal) total += parseFloat(c.meal || 0);
                 if(this.costChecks.painting) total += parseFloat(c.painting || 0);
                 if(this.costChecks.operational) total += parseFloat(c.operational || 0);
@@ -1328,10 +1407,7 @@
             },
 
             get kpis() {
-                // Filtra os projetos (já filtrados por data e tipo)
                 const items = this.filteredProjects;
-                
-                // Separa Serviços e Mão de Obra pela descrição ou tipo
                 const serviceItems = items.filter(i => !i.description?.includes('Mão de Obra'));
                 const laborItems = items.filter(i => i.description?.includes('Mão de Obra'));
 
@@ -1343,17 +1419,11 @@
             },
             
             get filteredPayables() {
-                // Filtra contas do DB
                 let manualPayables = this.payables.filter(p => p.dueDate && p.dueDate.startsWith(this.selectedMonth));
-                
-                // Gera salários automáticos (Virtuais)
                 const activeEmployees = this.employees.filter(e => e.isActive && e.salary > 0);
                 const automaticSalaries = activeEmployees.map(emp => {
-                    // Tenta achar se já existe um pagamento de salário para este funcionário neste mês
                     const alreadyExists = manualPayables.find(p => p.category === 'Salario' && p.description.includes(emp.name));
-                    
-                    if (alreadyExists) return null; // Se já existe real, não cria virtual
-
+                    if (alreadyExists) return null;
                     return {
                         id: 'auto_' + emp.id,
                         isAuto: true,
@@ -1365,15 +1435,12 @@
                         employeeId: emp.id
                     };
                 }).filter(i => i !== null);
-
-                // Junta as listas
                 return [...manualPayables, ...automaticSalaries].sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
             },
             
             get uniqueProjects() {
                 const unique = {};
                 this.projects.forEach(p => {
-                    // Apenas obras para vincular (não balcão)
                     if(p.customId && !unique[p.customId] && (!p.category || p.category === 'work')) {
                         unique[p.customId] = p;
                     }
@@ -1389,10 +1456,10 @@
 
             get pageTitle() {
                 const map = {
-                    'kanban': 'Quadro de Serviços', 'list': 'Lista de Serviços',
-                    'counter': 'Venda Balcão',
+                    'kanban': 'Quadro de Serviços', 'list': 'Lista de Serviços', 'counter': 'Venda Balcão',
                     'employees': 'Gestão de Funcionários', 'materials': 'Estoque de Matéria Prima',
-                    'payables': 'Contas a Pagar', 'invoices': 'Emissão de Nota Fiscal', 'costs': 'Custos de Obra', 'profitability': 'DRE por Obra'
+                    'payables': 'Contas a Pagar', 'invoices': 'Emissão de Nota Fiscal', 'costs': 'Custos de Obra', 'profitability': 'DRE por Obra',
+                    'clients': 'Gestão de Clientes', 'products_mgr': 'Catálogo de Produtos'
                 };
                 return map[this.currentView];
             },
@@ -1400,7 +1467,8 @@
             get modalTitle() {
                 const map = {
                     'project': 'Orçamento', 'employee': 'Funcionário',
-                    'material': 'Item', 'payable': 'Conta', 'cost': 'Custo de Obra'
+                    'material': 'Item', 'payable': 'Conta', 'cost': 'Custo de Obra',
+                    'client': 'Cliente', 'product': 'Produto'
                 };
                 return map[this.modalType];
             },
@@ -1409,99 +1477,59 @@
                 const map = {
                     'kanban': 'Novo Orçamento', 'list': 'Novo Orçamento', 'counter': 'Nova Venda',
                     'employees': 'Novo Funcionário', 'materials': 'Novo Material',
-                    'payables': 'Nova Conta', 'costs': 'Novo Custo'
+                    'payables': 'Nova Conta', 'costs': 'Novo Custo',
+                    'clients': 'Novo Cliente', 'products_mgr': 'Novo Produto'
                 };
                 return map[this.currentView];
             },
             
             get profitabilityData() {
-                // 1. Filtrar Projetos (pelo ID se houver, ou todos)
                 let targetCustomIds = this.projects
-                    .filter(p => !p.category || p.category === 'work') // Only works
+                    .filter(p => !p.category || p.category === 'work')
                     .map(p => p.customId)
-                    .filter((v, i, a) => a.indexOf(v) === i); // Unique IDs
+                    .filter((v, i, a) => a.indexOf(v) === i); 
 
-                if (this.filterId) {
-                    targetCustomIds = targetCustomIds.filter(id => (id + '').includes(this.filterId));
-                }
-                
+                if (this.filterId) targetCustomIds = targetCustomIds.filter(id => (id + '').includes(this.filterId));
                 targetCustomIds.sort((a, b) => b - a);
 
-                // 2. Build rows
                 const rows = targetCustomIds.map(cid => {
-                    // Get all items for this work
                     const workItems = this.projects.filter(p => p.customId === cid);
                     const mainItem = workItems[0] || {};
                     const contractValue = parseFloat(mainItem.contractValue || 0);
 
-                    // Calculate Totals
-                    const sumServices = workItems
-                        .filter(i => !i.description?.includes('Mão de Obra'))
-                        .reduce((acc, curr) => acc + (parseFloat(curr.serviceValue) || 0), 0);
+                    const sumServices = workItems.filter(i => !i.description?.includes('Mão de Obra')).reduce((acc, curr) => acc + (parseFloat(curr.serviceValue) || 0), 0);
+                    const sumLabor = workItems.filter(i => i.description?.includes('Mão de Obra')).reduce((acc, curr) => acc + (parseFloat(curr.serviceValue) || 0), 0);
+                    const relatedCosts = this.projectCosts.filter(c => c.projectCustomId === cid).reduce((sum, c) => sum + (parseFloat(c.totalCost) || 0), 0);
                     
-                    const sumLabor = workItems
-                        .filter(i => i.description?.includes('Mão de Obra'))
-                        .reduce((acc, curr) => acc + (parseFloat(curr.serviceValue) || 0), 0);
-
-                    // Costs
-                    const relatedCosts = this.projectCosts
-                        .filter(c => c.projectCustomId === cid)
-                        .reduce((sum, c) => sum + (parseFloat(c.totalCost) || 0), 0);
-                    
-                    // Profit & Margin (Based on Services)
                     const profit = sumServices - relatedCosts;
                     const margin = sumServices > 0 ? ((profit / sumServices) * 100).toFixed(1) : 0;
-                    
-                    // Progression
                     const progression = contractValue > 0 ? ((sumServices / contractValue) * 100).toFixed(1) : 0;
 
                     return {
-                        id: mainItem.id, // reference
-                        customId: cid,
-                        clientName: mainItem.clientName,
-                        contractValue: contractValue,
-                        totalServices: sumServices,
-                        progression: progression,
-                        totalLabor: sumLabor,
-                        cost: relatedCosts,
-                        profit: profit,
-                        margin: margin
+                        id: mainItem.id, customId: cid, clientName: mainItem.clientName,
+                        contractValue: contractValue, totalServices: sumServices, progression: progression,
+                        totalLabor: sumLabor, cost: relatedCosts, profit: profit, margin: margin
                     };
                 });
 
-                // 3. Totals
                 const totalServices = rows.reduce((acc, r) => acc + r.totalServices, 0);
                 const totalLabor = rows.reduce((acc, r) => acc + r.totalLabor, 0);
                 const totalCosts = rows.reduce((acc, r) => acc + r.cost, 0);
                 const grossProfit = totalServices - totalCosts;
                 const totalMargin = totalServices > 0 ? ((grossProfit / totalServices) * 100).toFixed(1) : 0;
 
-                return {
-                    rows,
-                    totalServices,
-                    totalLabor,
-                    totalCosts,
-                    grossProfit,
-                    margin: totalMargin
-                };
+                return { rows, totalServices, totalLabor, totalCosts, grossProfit, margin: totalMargin };
             },
 
             init() {
                 this.checkAuth();
                 this.$watch('currentView', (val) => {
                     setTimeout(() => lucide.createIcons(), 100);
-                    if (val === 'profitability') {
-                        setTimeout(() => this.initProfitChart(), 300);
-                    }
+                    if (val === 'profitability') setTimeout(() => this.initProfitChart(), 300);
                 });
-                
-                // Re-render chart when filter changes in profitability view
                 this.$watch('filterId', () => {
-                    if (this.currentView === 'profitability') {
-                        setTimeout(() => this.initProfitChart(), 300);
-                    }
+                    if (this.currentView === 'profitability') setTimeout(() => this.initProfitChart(), 300);
                 });
-                
                 this.$watch('selectedParentId', (val) => {
                     if (val && this.linkToExisting) {
                         const parent = this.projects.find(p => p.customId == val);
@@ -1520,26 +1548,17 @@
             setView(view) {
                 this.currentView = view;
                 this.sidebarOpen = false;
-                // Limpar filtros ao trocar de view
-                this.filterId = '';
-                this.filterService = '';
-                this.filterStatus = '';
+                this.filterId = ''; this.filterService = ''; this.filterStatus = '';
             },
 
             // --- METHODS ---
             
             initProfitChart() {
                 if(window.profitChartInstance) window.profitChartInstance.destroy();
-                
                 const ctx = document.getElementById('profitabilityChart');
                 if(!ctx) return;
-
                 const data = this.profitabilityData;
-                
-                // Prepare labels (Project IDs) and data
-                // Limit to top 10 projects for readability if too many
                 const displayRows = data.rows.slice(0, 10);
-                
                 const labels = displayRows.map(r => `#${r.customId}`);
                 const revenues = displayRows.map(r => r.totalServices);
                 const costs = displayRows.map(r => r.cost);
@@ -1549,25 +1568,11 @@
                     data: {
                         labels: labels,
                         datasets: [
-                            {
-                                label: 'Receita (Serviços)',
-                                data: revenues,
-                                backgroundColor: '#22c55e',
-                            },
-                            {
-                                label: 'Despesas',
-                                data: costs,
-                                backgroundColor: '#ef4444',
-                            }
+                            { label: 'Receita (Serviços)', data: revenues, backgroundColor: '#22c55e' },
+                            { label: 'Despesas', data: costs, backgroundColor: '#ef4444' }
                         ]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: true }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
                 });
             },
             
@@ -1575,7 +1580,6 @@
                 if (this.modalType === 'cost' && this.currentItem.projectRefId) {
                     const project = this.projects.find(p => p.id === this.currentItem.projectRefId);
                     if (project) {
-                        // Snapshot dos dados para facilitar exibição na lista
                         this.currentItem.projectCustomId = project.customId;
                         this.currentItem.clientName = project.clientName;
                     }
@@ -1593,6 +1597,89 @@
                 const today = new Date().toISOString().split('T')[0];
                 return Object.values(emp.courses).some(c => c.expiration && c.expiration <= today);
             },
+            
+            formatPhoneOnImport(raw) {
+                if (!raw) return '';
+                let nums = raw.replace(/\D/g, '');
+                if (nums.length === 10) return nums.replace(/(\d{2})(\d{4})(\d{4})/, '$1 $2-$3');
+                else if (nums.length === 11) return nums.replace(/(\d{2})(\d{5})(\d{4})/, '$1 $2-$3');
+                return raw;
+            },
+
+            async handleFileUpload(event, type) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                // CORREÇÃO: Utilizando ISO-8859-1 para suportar acentos (padrão Brasil/Excel)
+                reader.onload = async (e) => {
+                    const text = e.target.result;
+                    const rows = text.split('\n').filter(row => row.trim() !== '');
+                    
+                    let count = 0;
+                    const colName = type === 'clients' ? 'clientes' : 'produtos';
+                    const today = new Date().toISOString().split('T')[0];
+                    
+                    for (let i = 1; i < rows.length; i++) { // Pula header
+                        const cols = rows[i].split(';'); // Tenta ponto e vírgula primeiro (comum no Brasil)
+                        const finalCols = cols.length > 1 ? cols : rows[i].split(','); // Se falhar, tenta vírgula
+                        
+                        if (finalCols.length < 2) continue;
+
+                        let payload = {};
+                        if (type === 'clients') {
+                            const tipoRaw = (finalCols[4]?.trim() || 'Juridica').toLowerCase();
+                            const tipoFinal = tipoRaw.includes('fisica') ? 'Fisica' : 'Juridica';
+
+                            payload = {
+                                code: finalCols[0]?.trim() || '',
+                                document: finalCols[1]?.trim() || '',
+                                name: finalCols[2]?.trim() || '',
+                                fantasy: finalCols[3]?.trim() || '',
+                                type: tipoFinal,
+                                phone: this.formatPhoneOnImport(finalCols[5]?.trim()),
+                                cell: this.formatPhoneOnImport(finalCols[6]?.trim()),
+                                registerDate: today, 
+                                email: finalCols[7]?.trim() || '', 
+                                zip: finalCols[8]?.trim() || '',
+                                address: finalCols[9]?.trim() || '',
+                                number: finalCols[10]?.trim() || '',
+                                complement: finalCols[11]?.trim() || '',
+                                district: finalCols[12]?.trim() || '',
+                                city: finalCols[13]?.trim() || '',
+                                state: finalCols[14]?.trim() || '',
+                                notes: finalCols[15]?.trim() || '',
+                                createdAt: { seconds: Date.now() / 1000 }
+                            };
+                        } else {
+                            payload = {
+                                code: finalCols[0]?.trim() || '',
+                                description: finalCols[1]?.trim() || '',
+                                price: parseFloat(finalCols[2]?.trim().replace(',','.')) || 0, // Tratamento para decimal PT-BR
+                                group: finalCols[3]?.trim() || '',
+                                subgroup: finalCols[4]?.trim() || '',
+                                model: finalCols[5]?.trim() || '',
+                                costPrice: parseFloat(finalCols[6]?.trim().replace(',','.')) || 0,
+                                lastPurchaseDate: today, 
+                                supplier: finalCols[8]?.trim() || '',
+                                ncm: finalCols[9]?.trim() || '',
+                                createdAt: { seconds: Date.now() / 1000 }
+                            };
+                        }
+
+                        if (db) await addDoc(collection(db, colName), payload);
+                        else {
+                            if(type === 'clients') this.clients.push({id: Math.random(), ...payload});
+                            else this.products_catalog.push({id: Math.random(), ...payload});
+                        }
+                        count++;
+                    }
+                    alert(`${count} registros importados com sucesso!`);
+                    event.target.value = ''; 
+                };
+                // Forçando leitura em ISO-8859-1
+                reader.readAsText(file, 'ISO-8859-1');
+            },
 
             // --- AUTH ---
             checkAuth() {
@@ -1605,39 +1692,24 @@
             },
 
             async login() {
-                this.isLoading = true;
-                this.loginError = '';
+                this.isLoading = true; this.loginError = '';
                 try {
                     if (auth) {
-                        if (this.loginForm.email && this.loginForm.password) {
-                            await signInWithEmailAndPassword(auth, this.loginForm.email, this.loginForm.password);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
+                        if (this.loginForm.email && this.loginForm.password) await signInWithEmailAndPassword(auth, this.loginForm.email, this.loginForm.password);
+                        else await signInAnonymously(auth);
                     } else {
                         await new Promise(r => setTimeout(r, 800));
-                        this.isLoggedIn = true;
-                        this.loadAllData();
+                        this.isLoggedIn = true; this.loadAllData();
                     }
                 } catch (e) { 
-                    console.error("Login Error:", e);
-                    if (e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
-                        this.loginError = "Email ou senha incorretos.";
-                    } else if (e.code === 'auth/operation-not-allowed') {
-                        this.loginError = "Método de login não habilitado no Firebase Console.";
-                    } else if (e.code === 'auth/too-many-requests') {
-                        this.loginError = "Muitas tentativas. Tente novamente mais tarde.";
-                    } else {
-                        this.loginError = "Erro ao entrar: " + e.message;
-                    }
+                    this.loginError = "Erro ao entrar. Verifique suas credenciais.";
                 } 
                 finally { this.isLoading = false; }
             },
 
             async logout() {
                 if (auth) await signOut(auth);
-                this.isLoggedIn = false;
-                this.projects = []; this.employees = []; this.materials = []; this.payables = [];
+                this.isLoggedIn = false; this.projects = []; this.employees = []; this.materials = []; this.payables = []; this.clients = []; this.products_catalog = [];
             },
 
             // --- DATA LOADING ---
@@ -1647,6 +1719,8 @@
                 this.loadCollection('material', 'materials');
                 this.loadCollection('payable', 'payables');
                 this.loadCollection('cost', 'projectCosts');
+                this.loadCollection('client', 'clients');
+                this.loadCollection('product', 'products_catalog');
             },
 
             loadCollection(type, arrayName) {
@@ -1654,7 +1728,9 @@
                     const collectionName = type === 'project' ? 'orcamentos' : 
                                            type === 'employee' ? 'funcionarios' :
                                            type === 'material' ? 'materiais' : 
-                                           type === 'cost' ? 'custos_obra' : 'financeiro';
+                                           type === 'cost' ? 'custos_obra' : 
+                                           type === 'client' ? 'clientes' :
+                                           type === 'product' ? 'produtos' : 'financeiro';
                     
                     const q = query(collection(db, collectionName));
                     onSnapshot(q, (snapshot) => {
@@ -1676,7 +1752,9 @@
                     'employees': [{ id: 1, name: 'João Silva', isActive: true, cpf: '12345678900', role: 'Instalador', phone: '119999999', salary: 2500, extraValue: 150, courses: { safety: { expiration: '2023-01-01' } } }],
                     'materials': [{ id: 1, name: 'Chapa Galv. 28', status: 'Em Estoque', orderDate: '2023-10-01', type: 'Chapas', quantity: 50, unit: 'm', cost: 45.00 }],
                     'payables': [{ id: 1, description: 'Conta de Luz', category: 'Fixa', amount: 350.50, dueDate: this.selectedMonth + '-15', isPaid: false }],
-                    'projectCosts': [{ id: 1, projectCustomId: 1001, clientName: 'Padaria Central', totalCost: 150.00, createdAt: {seconds: Date.now()/1000}, costs: { meal: 50, transport: 100 } }]
+                    'projectCosts': [{ id: 1, projectCustomId: 1001, clientName: 'Padaria Central', totalCost: 150.00, createdAt: {seconds: Date.now()/1000}, costs: { meal: 50, transport: 100 } }],
+                    'clients': [{ id: 1, code: 'C001', name: 'Padaria Central LTDA', fantasy: 'Padaria Central', document: '12345678000199', phone: '1133334444', email: 'contato@padaria.com', city: 'São Paulo', state: 'SP' }],
+                    'products_catalog': [{ id: 1, code: 'P001', description: 'Calha Moldura 28', price: 45.00, group: 'Calhas', supplier: 'Metalúrgica Aço', costPrice: 25.00 }]
                 };
                 if(this[arrayName].length === 0) this[arrayName] = mocks[arrayName] || [];
             },
@@ -1687,35 +1765,21 @@
                 this.isSaving = true;
                 const data = { ...this.currentItem };
                 
-                // Conversão de Status do Funcionário
-                if (this.modalType === 'employee') {
-                    data.isActive = String(data.isActive) === 'true';
-                }
+                if (this.modalType === 'employee') data.isActive = String(data.isActive) === 'true';
+                if (this.modalType === 'cost') data.totalCost = this.calculatedTotalCost;
 
-                // Cálculo de Total para Custos e Preparação
-                if (this.modalType === 'cost') {
-                    data.totalCost = this.calculatedTotalCost;
-                }
-
-                // Sanitização numérica
-                ['value', 'contractValue', 'serviceValue', 'amount', 'salary', 'extraValue', 'cost', 'quantity'].forEach(field => {
+                ['value', 'contractValue', 'serviceValue', 'amount', 'salary', 'extraValue', 'cost', 'quantity', 'price', 'costPrice'].forEach(field => {
                     if(data[field]) data[field] = parseFloat(data[field]);
                 });
                 
-                // Lógica de ID Sequencial (Apenas para Projetos Novos)
                 if (this.modalType === 'project' && !this.isEditing) {
-                    if (this.linkToExisting && this.selectedParentId) {
-                        data.customId = parseInt(this.selectedParentId);
-                    } else {
-                        data.customId = this.nextId;
-                    }
+                    if (this.linkToExisting && this.selectedParentId) data.customId = parseInt(this.selectedParentId);
+                    else data.customId = this.nextId;
                 }
 
-                // Remove campos auxiliares
                 const repeatCount = parseInt(data.repeatCount || 1);
                 delete data.repeatCount;
 
-                // Salvar Data Editável (Projetos)
                 if (this.modalType === 'project' && data.date) {
                     const dateObj = new Date(data.date + 'T12:00:00'); 
                     data.createdAt = { seconds: dateObj.getTime() / 1000 };
@@ -1723,13 +1787,22 @@
                 } else if (!data.createdAt) {
                     data.createdAt = { seconds: Date.now() / 1000 };
                 }
+
+                // Force today's date for new Clients/Products if saving manually
+                if ((this.modalType === 'client' || this.modalType === 'product') && !this.isEditing) {
+                    const today = new Date().toISOString().split('T')[0];
+                    if(this.modalType === 'client') data.registerDate = today;
+                    if(this.modalType === 'product') data.lastPurchaseDate = today;
+                }
                 
                 try {
                     if (db) {
                         const collectionName = this.modalType === 'project' ? 'orcamentos' : 
                                                this.modalType === 'employee' ? 'funcionarios' :
                                                this.modalType === 'material' ? 'materiais' : 
-                                               this.modalType === 'cost' ? 'custos_obra' : 'financeiro';
+                                               this.modalType === 'cost' ? 'custos_obra' : 
+                                               this.modalType === 'client' ? 'clientes' :
+                                               this.modalType === 'product' ? 'produtos' : 'financeiro';
                         
                         const colRef = collection(db, collectionName);
                         
@@ -1745,9 +1818,7 @@
                                     await addDoc(colRef, payload);
                                 }
                             } else {
-                                if (this.modalType === 'project' && !data.createdAt) {
-                                     data.createdAt = new Date();
-                                }
+                                if (this.modalType === 'project' && !data.createdAt) data.createdAt = new Date();
                                 await addDoc(colRef, data);
 
                                 if (this.modalType === 'project' && this.hasLabor) {
@@ -1762,9 +1833,8 @@
                             }
                         }
                     } else {
-                        // Mock
                         await new Promise(r => setTimeout(r, 500));
-                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts' };
+                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts', 'client': 'clients', 'product': 'products_catalog' };
                         const arrName = targetArrayMap[this.modalType];
                         if (this.isEditing) {
                             const idx = this[arrName].findIndex(i => i.id === this.currentItem.id);
@@ -1783,29 +1853,30 @@
             async deleteItem(item = null) {
                 const targetId = item ? item.id : this.currentItem.id;
                 if (!targetId) return;
-                
                 if (!confirm("Tem certeza que deseja excluir?")) return;
                 
                 try {
                     if (db) {
-                        const collectionName = this.modalType === 'project' ? 'orcamentos' : 
-                                               this.modalType === 'employee' ? 'funcionarios' :
-                                               this.modalType === 'material' ? 'materiais' :
-                                               this.modalType === 'cost' ? 'custos_obra' : 'financeiro';
+                        let colName = this.modalType === 'project' ? 'orcamentos' : 
+                                      this.modalType === 'employee' ? 'funcionarios' :
+                                      this.modalType === 'material' ? 'materiais' :
+                                      this.modalType === 'cost' ? 'custos_obra' :
+                                      this.modalType === 'client' ? 'clientes' :
+                                      this.modalType === 'product' ? 'produtos' : 'financeiro';
                         
-                        let colName = collectionName;
                         if (item) {
                              if (this.currentView === 'employees') colName = 'funcionarios';
                              else if (this.currentView === 'materials') colName = 'materiais';
                              else if (this.currentView === 'payables') colName = 'financeiro';
                              else if (this.currentView === 'costs') colName = 'custos_obra';
+                             else if (this.currentView === 'clients') colName = 'clientes';
+                             else if (this.currentView === 'products_mgr') colName = 'produtos';
                              else colName = 'orcamentos';
                         }
-
                         await deleteDoc(doc(db, colName, targetId));
                     } else {
-                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts' };
-                         const arrName = targetArrayMap[this.modalType];
+                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts', 'client': 'clients', 'product': 'products_catalog' };
+                        const arrName = targetArrayMap[this.modalType];
                         this[arrName] = this[arrName].filter(i => i.id !== targetId);
                     }
                     if (this.showModal) this.closeModal();
@@ -1814,24 +1885,11 @@
 
             async togglePaid(bill) {
                 const newState = !bill.isPaid;
-                
                 if (bill.isAuto) {
-                    // Se for automático, cria um registro REAL
-                    const payload = {
-                        description: bill.description,
-                        category: bill.category,
-                        amount: bill.amount,
-                        dueDate: bill.dueDate,
-                        isPaid: newState,
-                        createdAt: { seconds: Date.now() / 1000 }
-                    };
-                    if (db) {
-                        await addDoc(collection(db, 'financeiro'), payload);
-                    }
+                    const payload = { description: bill.description, category: bill.category, amount: bill.amount, dueDate: bill.dueDate, isPaid: newState, createdAt: { seconds: Date.now() / 1000 } };
+                    if (db) await addDoc(collection(db, 'financeiro'), payload);
                 } else {
-                    if (db) {
-                        await updateDoc(doc(db, 'financeiro', bill.id), { isPaid: newState });
-                    }
+                    if (db) await updateDoc(doc(db, 'financeiro', bill.id), { isPaid: newState });
                 }
             },
 
@@ -1843,38 +1901,34 @@
                 else if(this.currentView === 'materials') this.modalType = 'material';
                 else if(this.currentView === 'payables') this.modalType = 'payable';
                 else if(this.currentView === 'costs') this.modalType = 'cost';
+                else if(this.currentView === 'clients') this.modalType = 'client';
+                else if(this.currentView === 'products_mgr') this.modalType = 'product';
                 this.showModal = true;
             },
 
             editItem(item) {
                 this.currentItem = { ...item };
                 this.isEditing = true;
-                this.linkToExisting = false; // Resetar
+                this.linkToExisting = false; 
                 
                 if (this.currentView === 'employees') {
                     this.modalType = 'employee';
-                    // Inicializa estrutura de cursos se nao existir
-                    if (!this.currentItem.courses) {
-                         this.currentItem.courses = { safety: {}, machinery: {}, rappel: {}, measurement: {} };
-                    }
+                    if (!this.currentItem.courses) this.currentItem.courses = { safety: {}, machinery: {}, rappel: {}, measurement: {} };
                 }
                 else if (this.currentView === 'materials') this.modalType = 'material';
                 else if (this.currentView === 'payables') this.modalType = 'payable';
+                else if (this.currentView === 'clients') this.modalType = 'client';
+                else if (this.currentView === 'products_mgr') this.modalType = 'product';
                 else if (this.currentView === 'costs') {
                     this.modalType = 'cost';
                     this.costChecks = {
                         material: !!item.costs?.material,
-                        rawMaterial: !!item.costs?.materials?.['RawMaterial']?.meters, // Verifica se tem metragem salva
-                        meal: !!item.costs?.meal,
-                        painting: !!item.costs?.painting,
-                        operational: !!item.costs?.operational,
-                        transport: !!item.costs?.transport,
-                        unforeseen: !!item.costs?.unforeseen,
-                        tax: !!item.costs?.tax
+                        rawMaterial: !!item.costs?.materials?.['RawMaterial']?.meters,
+                        meal: !!item.costs?.meal, painting: !!item.costs?.painting, operational: !!item.costs?.operational,
+                        transport: !!item.costs?.transport, unforeseen: !!item.costs?.unforeseen, tax: !!item.costs?.tax
                     };
                     
                     if (item.costs?.materials) {
-                         // Mantém material genérico checkado se houver outros itens além de RawMaterial
                          const hasOtherMats = Object.keys(item.costs.materials).some(k => k !== 'RawMaterial' && (item.costs.materials[k].qty > 0));
                          this.costChecks.material = hasOtherMats || this.costChecks.rawMaterial;
                     }
@@ -1882,23 +1936,17 @@
                     if (!this.currentItem.costs.materials) {
                         this.currentItem.costs.materials = {
                             'RawMaterial': {type: 'Galvanizada', thickness: '0.43', meters: '', pricePerMeter: ''},
-                            'PU/Vedante': {qty: '', unitCost: ''},
-                            'Rebite': {qty: '', unitCost: ''},
-                            'Capacete': {qty: '', unitCost: ''},
-                            'Porca': {qty: '', unitCost: ''},
-                            'Parafuso': {qty: '', unitCost: ''}
+                            'PU/Vedante': {qty: '', unitCost: ''}, 'Rebite': {qty: '', unitCost: ''},
+                            'Capacete': {qty: '', unitCost: ''}, 'Porca': {qty: '', unitCost: ''}, 'Parafuso': {qty: '', unitCost: ''}
                         };
                     }
-                    // Garantir que RawMaterial exista se for edição antiga
                     if(!this.currentItem.costs.materials['RawMaterial']) {
                         this.currentItem.costs.materials['RawMaterial'] = {type: 'Galvanizada', thickness: '0.43', meters: '', pricePerMeter: ''};
                     }
                 }
                 else {
                     this.modalType = 'project';
-                    if (item.createdAt) {
-                        this.currentItem.date = this.formatDateRawISO(item.createdAt);
-                    }
+                    if (item.createdAt) this.currentItem.date = this.formatDateRawISO(item.createdAt);
                 }
                 this.showModal = true;
             },
@@ -1913,8 +1961,8 @@
                 this.currentItem = {};
                 this.linkToExisting = false;
                 this.selectedParentId = '';
-                this.hasLabor = false; // Resetar checkbox
-                this.filterId = ''; // Resetar filtros
+                this.hasLabor = false; 
+                this.filterId = ''; 
                 this.costChecks = { material: false, rawMaterial: false, meal: false, painting: false, operational: false, transport: false, unforeseen: false, tax: false };
                 
                 if(this.currentView === 'kanban' || this.currentView === 'list' || this.currentView === 'counter') {
@@ -1922,23 +1970,28 @@
                     this.currentItem = { serviceType: 'Calhas', status: 'lead', date: today, budgetDate: today };
                 }
                 if(this.currentView === 'materials') this.currentItem = { unit: 'un', type: 'Chapas', status: 'Em Estoque', orderDate: new Date().toISOString().split('T')[0] };
-                if(this.currentView === 'employees') {
-                    this.currentItem = { isActive: true, courses: { safety: {}, machinery: {}, rappel: {}, measurement: {} } };
+                if(this.currentView === 'employees') this.currentItem = { isActive: true, courses: { safety: {}, machinery: {}, rappel: {}, measurement: {} } };
+                if(this.currentView === 'payables') this.currentItem = { category: 'Fixa', isPaid: false, dueDate: this.selectedMonth + '-10', repeatCount: 1, isAuto: false };
+                
+                // DATA SEMPRE HOJE PARA NOVOS CLIENTES E PRODUTOS + CÓDIGO SEQUENCIAL
+                if(this.currentView === 'clients') {
+                    this.currentItem = { 
+                        type: 'Fisica', 
+                        registerDate: new Date().toISOString().split('T')[0],
+                        code: this.nextClientCode 
+                    };
                 }
-                if(this.currentView === 'payables') {
-                    // FORCE isAuto false for NEW records
-                    this.currentItem = { category: 'Fixa', isPaid: false, dueDate: this.selectedMonth + '-10', repeatCount: 1, isAuto: false };
+                if(this.currentView === 'products_mgr') {
+                    this.currentItem = { lastPurchaseDate: new Date().toISOString().split('T')[0] };
                 }
+                
                 if(this.currentView === 'costs') {
                     this.currentItem = { 
                         costs: {
                             materials: {
                                 'RawMaterial': {type: 'Galvanizada', thickness: '0.43', meters: '', pricePerMeter: ''},
-                                'PU/Vedante': {qty: '', unitCost: ''},
-                                'Rebite': {qty: '', unitCost: ''},
-                                'Capacete': {qty: '', unitCost: ''},
-                                'Porca': {qty: '', unitCost: ''},
-                                'Parafuso': {qty: '', unitCost: ''}
+                                'PU/Vedante': {qty: '', unitCost: ''}, 'Rebite': {qty: '', unitCost: ''},
+                                'Capacete': {qty: '', unitCost: ''}, 'Porca': {qty: '', unitCost: ''}, 'Parafuso': {qty: '', unitCost: ''}
                             }
                         } 
                     };
@@ -1956,9 +2009,7 @@
             },
             
             getStatusTotalValue(statusId) {
-                const total = this.filteredProjects
-                    .filter(i => i.status === statusId)
-                    .reduce((acc, curr) => acc + (parseFloat(curr.serviceValue) || 0), 0); // Soma valor do SERVIÇO
+                const total = this.filteredProjects.filter(i => i.status === statusId).reduce((acc, curr) => acc + (parseFloat(curr.serviceValue) || 0), 0);
                 return this.formatMoney(total);
             },
             
@@ -1988,7 +2039,7 @@
             formatDateRaw(dateString) {
                 if(!dateString) return '';
                 const parts = dateString.split('-');
-                return `${parts[2]}/${parts[1]}`; // Exibe apenas DD/MM
+                return `${parts[2]}/${parts[1]}`; 
             },
             
             formatDateRawISO(timestamp) {
@@ -1999,11 +2050,7 @@
             
             formatCPF(cpf) {
                 if (!cpf) return '';
-                return cpf.replace(/\D/g, '')
-                    .replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-                    .replace(/(-\d{2})\d+?$/, '$1');
+                return cpf.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})/, '$1-$2').replace(/(-\d{2})\d+?$/, '$1');
             },
 
             formatPhone(phone) {
