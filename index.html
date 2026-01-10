@@ -10,6 +10,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js para Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS para Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -48,7 +50,7 @@
         .kanban-col::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
         .sidebar-transition { transition: transform 0.3s ease-in-out; }
         .table-container { overflow-x: auto; }
-        .table-container table { min-width: 1200px; } 
+        .table-container table { min-width: 100%; } 
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden" x-data="appData()" x-cloak>
@@ -109,44 +111,47 @@
             </div>
 
             <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-                <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Comercial & Obras</p>
-                
-                <a href="#" @click.prevent="setView('kanban')" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
-                   :class="currentView === 'kanban' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
-                    <i data-lucide="trello" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'kanban' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
-                    Quadro de Serviços
-                </a>
+                <div class="space-y-1">
+                    <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-2">Comercial & Obras</p>
+                    
+                    <a href="#" @click.prevent="setView('kanban')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'kanban' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="trello" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'kanban' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Quadro de Serviços
+                    </a>
 
-                <a href="#" @click.prevent="setView('list')" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
-                   :class="currentView === 'list' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
-                    <i data-lucide="list" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'list' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
-                    Lista de Serviços
-                </a>
+                    <a href="#" @click.prevent="setView('list')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'list' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="list" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'list' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Lista de Serviços
+                    </a>
 
-                <a href="#" @click.prevent="setView('counter')" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
-                   :class="currentView === 'counter' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
-                    <i data-lucide="shopping-bag" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'counter' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
-                    Venda Balcão
-                </a>
+                    <a href="#" @click.prevent="setView('counter')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'counter' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="shopping-bag" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'counter' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Venda Balcão
+                    </a>
 
-                <a href="#" @click.prevent="setView('costs')" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
-                   :class="currentView === 'costs' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
-                    <i data-lucide="calculator" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'costs' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
-                    Custos de Obra
-                </a>
+                    <a href="#" @click.prevent="setView('costs')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'costs' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="calculator" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'costs' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Custos de Obra
+                    </a>
 
-                <a href="#" @click.prevent="setView('invoices')" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
-                   :class="currentView === 'invoices' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
-                    <i data-lucide="file-text" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'invoices' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
-                    Emissão de NF
-                </a>
+                    <a href="#" @click.prevent="setView('invoices')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'invoices' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="file-text" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'invoices' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Emissão de NF
+                    </a>
+                </div>
 
-                <div class="mt-6">
+                <!-- Espaçamento AUMENTADO (mt-10) entre sessões -->
+                <div class="mt-10 border-t border-slate-700 pt-4">
                     <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Cadastros Gerais</p>
                     
                     <a href="#" @click.prevent="setView('clients')" 
@@ -162,9 +167,16 @@
                         <i data-lucide="tag" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'products_mgr' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
                         Produtos
                     </a>
+
+                    <a href="#" @click.prevent="setView('taxes')" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                       :class="currentView === 'taxes' ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
+                        <i data-lucide="landmark" class="mr-3 h-5 w-5 flex-shrink-0" :class="currentView === 'taxes' ? 'text-white' : 'text-slate-400 group-hover:text-white'"></i>
+                        Impostos
+                    </a>
                 </div>
 
-                <div class="mt-6">
+                <div class="mt-10 border-t border-slate-700 pt-4">
                     <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Gestão Interna</p>
 
                     <a href="#" @click.prevent="setView('profitability')" 
@@ -220,16 +232,38 @@
                 <div class="flex items-center gap-4">
                     <!-- Botões de Ação para Clientes e Produtos -->
                     <div x-show="currentView === 'clients'" class="flex gap-2">
+                        <button @click="deleteAllClients()" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-red-200">
+                            <i data-lucide="trash" class="w-4 h-4"></i> Excluir Todos
+                        </button>
+                        <button @click="exportToExcel('clients')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i> Excel
+                        </button>
                         <button @click="$refs.clientFile.click()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
                             <i data-lucide="upload" class="w-4 h-4"></i> Importar CSV
                         </button>
                         <input type="file" x-ref="clientFile" class="hidden" accept=".csv" @change="handleFileUpload($event, 'clients')">
                     </div>
                     <div x-show="currentView === 'products_mgr'" class="flex gap-2">
+                        <button @click="deleteAllProducts()" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-red-200">
+                            <i data-lucide="trash" class="w-4 h-4"></i> Excluir Todos
+                        </button>
+                         <button @click="exportToExcel('products')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i> Excel
+                        </button>
                         <button @click="$refs.productFile.click()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
                             <i data-lucide="upload" class="w-4 h-4"></i> Importar CSV
                         </button>
                         <input type="file" x-ref="productFile" class="hidden" accept=".csv" @change="handleFileUpload($event, 'products')">
+                    </div>
+                    <!-- Botões para Impostos -->
+                    <div x-show="currentView === 'taxes'" class="flex gap-2">
+                        <button @click="exportToExcel('taxes')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i> Excel
+                        </button>
+                        <button @click="$refs.taxFile.click()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i> Importar CSV
+                        </button>
+                        <input type="file" x-ref="taxFile" class="hidden" accept=".csv" @change="handleFileUpload($event, 'taxes')">
                     </div>
 
                     <button @click="openModal()" class="bg-accent-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-sm" x-show="currentView !== 'invoices' && currentView !== 'profitability'">
@@ -295,6 +329,17 @@
                     </div>
                     <div class="sm:col-span-2 lg:col-span-1 text-right self-end">
                         <button @click="resetFilters()" class="text-sm text-brand-600 hover:text-brand-800 underline">Limpar Filtros</button>
+                    </div>
+                </div>
+
+                <!-- Filtros para Clientes, Produtos e Impostos -->
+                <div x-show="['clients', 'products_mgr', 'taxes'].includes(currentView)" class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                    <div class="flex flex-col gap-1 sm:col-span-2">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Buscar</label>
+                        <input type="text" x-model="filterGeneral" placeholder="Digite para buscar..." class="border border-slate-300 rounded px-2 py-1.5 text-sm w-full">
+                    </div>
+                    <div class="text-right self-end">
+                        <button @click="filterGeneral = ''" class="text-sm text-brand-600 hover:text-brand-800 underline">Limpar Filtros</button>
                     </div>
                 </div>
 
@@ -383,14 +428,14 @@
                      </div>
                 </div>
 
-                <!-- VIEW 9: CLIENTES (NOVA) -->
-                <div x-show="currentView === 'clients'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
+                <!-- VIEW 9: CLIENTES (ATUALIZADA) -->
+                <div x-show="currentView === 'clients'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200 table-container">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead class="bg-slate-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cód</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nome / Razão</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-[25%]">Nome / Razão</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">CNPJ/CPF</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contato</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cidade/UF</th>
@@ -398,22 +443,23 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-slate-200">
-                                <template x-for="client in sortedClients" :key="client.id">
+                                <!-- USANDO sortedFilteredClients -->
+                                <template x-for="client in sortedFilteredClients" :key="client.id">
                                     <tr class="hover:bg-slate-50 transition">
-                                        <td class="px-6 py-4 text-xs font-bold text-slate-500" x-text="client.code"></td>
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap" x-text="client.code"></td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm font-medium text-slate-900" x-text="client.fantasy || client.name"></div>
-                                            <div class="text-xs text-slate-500" x-text="client.name"></div>
+                                            <div class="text-xs text-slate-500 truncate max-w-[200px]" x-text="client.name"></div>
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="formatCPF(client.document)"></td>
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="formatCPF(client.document)"></td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-slate-700" x-text="formatPhone(client.cell || client.phone)"></div>
                                             <div class="text-xs text-slate-500 truncate max-w-[150px]" x-text="client.email"></div>
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-slate-500">
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap">
                                             <span x-text="client.city"></span>/<span x-text="client.state"></span>
                                         </td>
-                                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                        <td class="px-6 py-4 text-right flex justify-end gap-2 whitespace-nowrap">
                                             <button @click="editItem(client)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                                             <button @click="deleteItem(client)" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                         </td>
@@ -427,36 +473,83 @@
                     </div>
                 </div>
 
-                <!-- VIEW 10: PRODUTOS (NOVA) -->
-                <div x-show="currentView === 'products_mgr'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
+                <!-- VIEW 10: PRODUTOS (ATUALIZADA) -->
+                <div x-show="currentView === 'products_mgr'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200 table-container">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead class="bg-slate-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cód</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ID Aux</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Descrição</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Und</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Preço Venda</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Imposto</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Grupo</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fornecedor</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Preço Venda</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-slate-200">
-                                <template x-for="prod in products_catalog" :key="prod.id">
+                                <!-- USANDO sortedFilteredProducts -->
+                                <template x-for="prod in sortedFilteredProducts" :key="prod.id">
                                     <tr class="hover:bg-slate-50 transition">
-                                        <td class="px-6 py-4 text-xs font-bold text-slate-500" x-text="prod.code"></td>
-                                        <td class="px-6 py-4 text-sm font-medium text-slate-900" x-text="prod.description"></td>
-                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="prod.group"></td>
-                                        <td class="px-6 py-4 text-sm text-slate-500" x-text="prod.supplier"></td>
-                                        <td class="px-6 py-4 text-sm font-bold text-slate-700" x-text="formatMoney(prod.price)"></td>
-                                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                        <td class="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap" x-text="prod.code"></td>
+                                        <td class="px-6 py-4 text-xs text-slate-500 whitespace-nowrap" x-text="prod.idCode || '-'"></td>
+                                        <td class="px-6 py-4 text-sm font-medium text-slate-900 whitespace-nowrap" x-text="prod.description"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="prod.unit || '-'"></td>
+                                        <td class="px-6 py-4 text-sm font-bold text-slate-700 whitespace-nowrap" x-text="formatMoney(prod.price)"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="prod.taxCode || '-'"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="prod.group"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="prod.supplier"></td>
+                                        <td class="px-6 py-4 text-right flex justify-end gap-2 whitespace-nowrap">
                                             <button @click="editItem(prod)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                                             <button @click="deleteItem(prod)" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                         </td>
                                     </tr>
                                 </template>
                                 <tr x-show="products_catalog.length === 0">
-                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">Nenhum produto cadastrado.</td>
+                                    <td colspan="9" class="px-6 py-12 text-center text-slate-500">Nenhum produto cadastrado.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VIEW 11: IMPOSTOS (ATUALIZADA) -->
+                <div x-show="currentView === 'taxes'" class="bg-white rounded-lg shadow overflow-hidden border border-slate-200 table-container">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">AP_NCM</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Operação</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Código ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ICMS</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">PIS</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">COFINS</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200">
+                                <template x-for="tax in sortedFilteredTaxes" :key="tax.id">
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap" x-text="tax.AP_NCM"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="tax.AR_ESTADO"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="tax.AR_OPERACAO"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="tax.CODIGOID"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="tax.AR_ICMS"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="tax.AR_PIS"></td>
+                                        <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap" x-text="tax.AR_COFINS"></td>
+                                        <td class="px-6 py-4 text-right flex justify-end gap-2 whitespace-nowrap">
+                                            <button @click="editItem(tax)" class="text-brand-600 hover:text-brand-900"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            <button @click="deleteItem(tax)" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="taxes.length === 0">
+                                    <td colspan="8" class="px-6 py-12 text-center text-slate-500">Nenhum imposto cadastrado.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -898,12 +991,11 @@
                                 </div>
                             </template>
 
-                            <!-- FORM: CLIENTES (ATUALIZADO COMPLETO) -->
+                            <!-- FORM: CLIENTES -->
                             <template x-if="modalType === 'client'">
                                 <div class="contents">
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Código</label>
-                                        <!-- Código preenchido automaticamente, mas editável se necessário -->
                                         <input type="text" x-model="currentItem.code" class="w-full px-3 py-2 border rounded-lg bg-slate-50" required>
                                     </div>
                                     <div>
@@ -941,12 +1033,9 @@
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
                                         <input type="email" x-model="currentItem.email" class="w-full px-3 py-2 border rounded-lg">
                                     </div>
-                                    
-                                    <!-- Endereço Detalhado -->
                                     <div class="sm:col-span-2 border-t border-slate-100 pt-4 mt-2 mb-2">
                                         <h4 class="text-xs font-bold text-slate-400 uppercase">Endereço</h4>
                                     </div>
-                                    
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">CEP</label>
                                         <input type="text" x-model="currentItem.zip" class="w-full px-3 py-2 border rounded-lg" placeholder="00000-000">
@@ -975,7 +1064,6 @@
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">UF</label>
                                         <input type="text" x-model="currentItem.state" class="w-full px-3 py-2 border rounded-lg" maxlength="2">
                                     </div>
-                                    
                                     <div class="sm:col-span-2 mt-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Observação</label>
                                         <textarea x-model="currentItem.notes" rows="3" class="w-full px-3 py-2 border rounded-lg"></textarea>
@@ -983,7 +1071,7 @@
                                 </div>
                             </template>
 
-                            <!-- FORM: PRODUTOS CATALOGO (NOVO) -->
+                            <!-- FORM: PRODUTOS CATALOGO -->
                             <template x-if="modalType === 'product'">
                                 <div class="contents">
                                     <div>
@@ -991,12 +1079,33 @@
                                         <input type="text" x-model="currentItem.code" class="w-full px-3 py-2 border rounded-lg" required>
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">NCM</label>
-                                        <input type="text" x-model="currentItem.ncm" class="w-full px-3 py-2 border rounded-lg">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Código ID</label>
+                                        <input type="text" x-model="currentItem.idCode" class="w-full px-3 py-2 border rounded-lg">
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição</label>
                                         <input type="text" x-model="currentItem.description" class="w-full px-3 py-2 border rounded-lg" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Unidade de Medida</label>
+                                        <select x-model="currentItem.unit" class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="ML">ML</option>
+                                            <option value="PC">PC</option>
+                                            <option value="PÇ">PÇ</option>
+                                            <option value="M2">M2</option>
+                                            <option value="BG">BG</option>
+                                            <option value="KG">KG</option>
+                                            <option value="LT">LT</option>
+                                            <option value="UN">UN</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">NCM</label>
+                                        <input type="text" x-model="currentItem.ncm" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Código Imposto</label>
+                                        <input type="text" x-model="currentItem.taxCode" class="w-full px-3 py-2 border rounded-lg">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Preço Venda</label>
@@ -1019,12 +1128,45 @@
                                         <input type="text" x-model="currentItem.model" class="w-full px-3 py-2 border rounded-lg">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data Última Compra</label>
-                                        <input type="date" x-model="currentItem.lastPurchaseDate" class="w-full px-3 py-2 border rounded-lg">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data Cadastro</label>
+                                        <input type="date" x-model="currentItem.registerDate" class="w-full px-3 py-2 border rounded-lg" readonly>
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fornecedor</label>
                                         <input type="text" x-model="currentItem.supplier" class="w-full px-3 py-2 border rounded-lg">
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- FORM: IMPOSTOS -->
+                            <template x-if="modalType === 'tax'">
+                                <div class="contents">
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AP_NCM</label><input type="text" x-model="currentItem.AP_NCM" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_ESTADO</label><input type="text" x-model="currentItem.AR_ESTADO" class="w-full px-3 py-2 border rounded-lg" maxlength="2"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_OPERACAO</label><input type="text" x-model="currentItem.AR_OPERACAO" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">CODIGOID</label><input type="text" x-model="currentItem.CODIGOID" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_ICMS</label><input type="number" step="0.01" x-model="currentItem.AR_ICMS" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_PIS</label><input type="number" step="0.01" x-model="currentItem.AR_PIS" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_COFINS</label><input type="number" step="0.01" x-model="currentItem.AR_COFINS" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_IPI</label><input type="number" step="0.01" x-model="currentItem.AR_IPI" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_ISS</label><input type="number" step="0.01" x-model="currentItem.AR_ISS" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_IR</label><input type="number" step="0.01" x-model="currentItem.AR_IR" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_CSLL</label><input type="number" step="0.01" x-model="currentItem.AR_CSLL" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">AR_ST_MVA</label><input type="number" step="0.01" x-model="currentItem.AR_ST_MVA" class="w-full px-3 py-2 border rounded-lg"></div>
+                                    
+                                    <!-- Campos Extras Simplificados -->
+                                    <div class="sm:col-span-2 mt-2">
+                                        <h4 class="text-xs font-bold text-slate-400 uppercase border-b pb-1 mb-2">Outros Campos</h4>
+                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                            <input type="text" x-model="currentItem.AR_CODIGO_DAP" placeholder="DAP" class="border rounded px-2 py-1 text-xs">
+                                            <input type="text" x-model="currentItem.AR_ST" placeholder="ST" class="border rounded px-2 py-1 text-xs">
+                                            <input type="text" x-model="currentItem.AR_CFOP" placeholder="CFOP" class="border rounded px-2 py-1 text-xs">
+                                            <input type="text" x-model="currentItem.AR_CSOSN" placeholder="CSOSN" class="border rounded px-2 py-1 text-xs">
+                                            <input type="text" x-model="currentItem.AR_FILIAL" placeholder="Filial" class="border rounded px-2 py-1 text-xs">
+                                            <input type="text" x-model="currentItem.AR_PESSOA" placeholder="Pessoa" class="border rounded px-2 py-1 text-xs">
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -1041,104 +1183,38 @@
                                             </template>
                                         </select>
                                     </div>
-                                    
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Checklist de Custos</label>
                                         <div class="space-y-3">
                                             <!-- Material -->
                                             <div class="p-2 rounded bg-slate-50 border">
                                                 <div class="flex items-center justify-between">
-                                                    <div class="flex items-center">
-                                                        <input type="checkbox" x-model="costChecks.material" class="w-4 h-4 text-brand-600 rounded">
-                                                        <span class="ml-2 text-sm text-slate-700 font-medium">Material Utilizado</span>
-                                                    </div>
+                                                    <div class="flex items-center"><input type="checkbox" x-model="costChecks.material" class="w-4 h-4 text-brand-600 rounded"><span class="ml-2 text-sm text-slate-700 font-medium">Material Utilizado</span></div>
                                                 </div>
-                                                
-                                                <!-- Submenu de Materiais -->
                                                 <div x-show="costChecks.material" class="mt-2 pl-6 space-y-2 border-l-2 border-brand-200">
-                                                    
-                                                    <!-- Matéria Prima (Chapas) -->
                                                     <div class="mb-3 p-2 bg-white rounded border border-slate-200">
                                                         <div class="flex items-center gap-2 mb-2">
-                                                            <input type="checkbox" x-model="costChecks.rawMaterial" class="w-3 h-3 text-brand-600 rounded">
-                                                            <span class="text-xs font-bold text-slate-700">Chapa / Matéria Prima</span>
+                                                            <input type="checkbox" x-model="costChecks.rawMaterial" class="w-3 h-3 text-brand-600 rounded"><span class="text-xs font-bold text-slate-700">Chapa / Matéria Prima</span>
                                                         </div>
                                                         <div x-show="costChecks.rawMaterial" class="grid grid-cols-2 gap-2">
-                                                            <select x-model="currentItem.costs.materials['RawMaterial'].type" class="border rounded px-1 py-0.5 text-xs w-full">
-                                                                <option value="Galvanizada">Galvanizada</option>
-                                                                <option value="Galvalume">Galvalume</option>
-                                                                <option value="Inox">Inox</option>
-                                                                <option value="Alumínio">Alumínio</option>
-                                                            </select>
-                                                            <select x-model="currentItem.costs.materials['RawMaterial'].thickness" class="border rounded px-1 py-0.5 text-xs w-full">
-                                                                <option value="0.43">0.43</option>
-                                                                <option value="0.50">0.50</option>
-                                                                <option value="0.65">0.65</option>
-                                                            </select>
+                                                            <select x-model="currentItem.costs.materials['RawMaterial'].type" class="border rounded px-1 py-0.5 text-xs w-full"><option value="Galvanizada">Galvanizada</option><option value="Galvalume">Galvalume</option><option value="Inox">Inox</option><option value="Alumínio">Alumínio</option></select>
+                                                            <select x-model="currentItem.costs.materials['RawMaterial'].thickness" class="border rounded px-1 py-0.5 text-xs w-full"><option value="0.43">0.43</option><option value="0.50">0.50</option><option value="0.65">0.65</option></select>
                                                             <input type="number" x-model="currentItem.costs.materials['RawMaterial'].meters" placeholder="Metragem (m)" class="border rounded px-1 py-0.5 text-xs w-full">
                                                             <input type="number" step="0.01" x-model="currentItem.costs.materials['RawMaterial'].pricePerMeter" placeholder="R$ / Metro" class="border rounded px-1 py-0.5 text-xs w-full">
                                                         </div>
                                                     </div>
-
-                                                    <!-- Outros Materiais -->
                                                     <template x-for="matType in ['PU/Vedante', 'Rebite', 'Capacete', 'Porca', 'Parafuso']">
-                                                        <div class="flex items-center gap-2">
-                                                            <span class="text-xs text-slate-600 w-24" x-text="matType"></span>
-                                                            <input type="number" x-model="currentItem.costs.materials[matType].qty" placeholder="Qtd" class="w-16 border rounded px-1 py-0.5 text-xs text-center">
-                                                            <input type="number" step="0.01" x-model="currentItem.costs.materials[matType].unitCost" placeholder="R$ Unit." class="w-20 border rounded px-1 py-0.5 text-xs text-right">
-                                                        </div>
+                                                        <div class="flex items-center gap-2"><span class="text-xs text-slate-600 w-24" x-text="matType"></span><input type="number" x-model="currentItem.costs.materials[matType].qty" placeholder="Qtd" class="w-16 border rounded px-1 py-0.5 text-xs text-center"><input type="number" step="0.01" x-model="currentItem.costs.materials[matType].unitCost" placeholder="R$ Unit." class="w-20 border rounded px-1 py-0.5 text-xs text-right"></div>
                                                     </template>
                                                 </div>
                                             </div>
-
-                                            <!-- Refeição -->
-                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
-                                                <div class="flex items-center">
-                                                    <input type="checkbox" x-model="costChecks.meal" class="w-4 h-4 text-brand-600 rounded">
-                                                    <span class="ml-2 text-sm text-slate-700">Custo de Refeição</span>
-                                                </div>
-                                                <input type="number" step="0.01" x-model="currentItem.costs.meal" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.meal" placeholder="0.00">
-                                            </div>
-                                            <!-- Pintura -->
-                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
-                                                <div class="flex items-center">
-                                                    <input type="checkbox" x-model="costChecks.painting" class="w-4 h-4 text-brand-600 rounded">
-                                                    <span class="ml-2 text-sm text-slate-700">Custo de Pintura</span>
-                                                </div>
-                                                <input type="number" step="0.01" x-model="currentItem.costs.painting" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.painting" placeholder="0.00">
-                                            </div>
-                                            <!-- Operacional -->
-                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
-                                                <div class="flex items-center">
-                                                    <input type="checkbox" x-model="costChecks.operational" class="w-4 h-4 text-brand-600 rounded">
-                                                    <span class="ml-2 text-sm text-slate-700">Custo Operacional</span>
-                                                </div>
-                                                <input type="number" step="0.01" x-model="currentItem.costs.operational" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.operational" placeholder="0.00">
-                                            </div>
-                                            <!-- Locomoção -->
-                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
-                                                <div class="flex items-center">
-                                                    <input type="checkbox" x-model="costChecks.transport" class="w-4 h-4 text-brand-600 rounded">
-                                                    <span class="ml-2 text-sm text-slate-700">Custo de Locomoção</span>
-                                                </div>
-                                                <input type="number" step="0.01" x-model="currentItem.costs.transport" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.transport" placeholder="0.00">
-                                            </div>
-                                            <!-- Imprevistos -->
-                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
-                                                <div class="flex items-center">
-                                                    <input type="checkbox" x-model="costChecks.unforeseen" class="w-4 h-4 text-brand-600 rounded">
-                                                    <span class="ml-2 text-sm text-slate-700">Imprevistos</span>
-                                                </div>
-                                                <input type="number" step="0.01" x-model="currentItem.costs.unforeseen" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.unforeseen" placeholder="0.00">
-                                            </div>
-                                            <!-- Imposto -->
-                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border">
-                                                <div class="flex items-center">
-                                                    <input type="checkbox" x-model="costChecks.tax" class="w-4 h-4 text-brand-600 rounded">
-                                                    <span class="ml-2 text-sm text-slate-700">Imposto Gerado</span>
-                                                </div>
-                                                <input type="number" step="0.01" x-model="currentItem.costs.tax" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.tax" placeholder="0.00">
-                                            </div>
+                                            <!-- Outros Custos -->
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border"><div class="flex items-center"><input type="checkbox" x-model="costChecks.meal" class="w-4 h-4 text-brand-600 rounded"><span class="ml-2 text-sm text-slate-700">Custo de Refeição</span></div><input type="number" step="0.01" x-model="currentItem.costs.meal" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.meal" placeholder="0.00"></div>
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border"><div class="flex items-center"><input type="checkbox" x-model="costChecks.painting" class="w-4 h-4 text-brand-600 rounded"><span class="ml-2 text-sm text-slate-700">Custo de Pintura</span></div><input type="number" step="0.01" x-model="currentItem.costs.painting" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.painting" placeholder="0.00"></div>
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border"><div class="flex items-center"><input type="checkbox" x-model="costChecks.operational" class="w-4 h-4 text-brand-600 rounded"><span class="ml-2 text-sm text-slate-700">Custo Operacional</span></div><input type="number" step="0.01" x-model="currentItem.costs.operational" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.operational" placeholder="0.00"></div>
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border"><div class="flex items-center"><input type="checkbox" x-model="costChecks.transport" class="w-4 h-4 text-brand-600 rounded"><span class="ml-2 text-sm text-slate-700">Custo de Locomoção</span></div><input type="number" step="0.01" x-model="currentItem.costs.transport" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.transport" placeholder="0.00"></div>
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border"><div class="flex items-center"><input type="checkbox" x-model="costChecks.unforeseen" class="w-4 h-4 text-brand-600 rounded"><span class="ml-2 text-sm text-slate-700">Imprevistos</span></div><input type="number" step="0.01" x-model="currentItem.costs.unforeseen" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.unforeseen" placeholder="0.00"></div>
+                                            <div class="flex items-center justify-between p-2 rounded bg-slate-50 border"><div class="flex items-center"><input type="checkbox" x-model="costChecks.tax" class="w-4 h-4 text-brand-600 rounded"><span class="ml-2 text-sm text-slate-700">Imposto Gerado</span></div><input type="number" step="0.01" x-model="currentItem.costs.tax" class="w-32 border rounded px-2 py-1 text-right" x-show="costChecks.tax" placeholder="0.00"></div>
                                         </div>
                                     </div>
                                     <div class="sm:col-span-2 text-right">
@@ -1147,7 +1223,7 @@
                                 </div>
                             </template>
 
-                            <!-- FORM: FUNCIONÁRIOS (Atualizado com Cursos) -->
+                            <!-- FORM: FUNCIONÁRIOS (ATUALIZADO - CURSOS DINÂMICOS) -->
                             <template x-if="modalType === 'employee'">
                                 <div class="contents">
                                     <div class="sm:col-span-2 flex items-center gap-2 mb-2 p-2 bg-slate-50 rounded border">
@@ -1164,18 +1240,36 @@
                                     <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Salário Base</label><input type="number" step="0.01" x-model="currentItem.salary" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00"></div>
                                     <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Extra</label><input type="number" step="0.01" x-model="currentItem.extraValue" class="w-full px-3 py-2 border rounded-lg" placeholder="0.00"></div>
                                     <div class="sm:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Funções Extras / Obs</label><textarea x-model="currentItem.extras" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea></div>
+                                    
+                                    <!-- SEÇÃO DE CURSOS DINÂMICA -->
                                     <div class="sm:col-span-2 border-t border-slate-100 pt-4 mt-2">
-                                        <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Cursos Obrigatórios</h4>
-                                        <div class="space-y-3">
-                                            <template x-for="course in coursesDef" :key="course.key">
-                                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-slate-50 rounded border border-slate-200">
-                                                    <span class="text-sm font-medium text-slate-700 w-40" x-text="course.label"></span>
-                                                    <div class="flex gap-2 flex-1">
-                                                        <div class="flex-1"><label class="block text-[10px] text-slate-400">Conclusão</label><input type="date" x-model="currentItem.courses[course.key].completion" class="w-full px-2 py-1 border rounded text-xs"></div>
-                                                        <div class="flex-1"><label class="block text-[10px] text-slate-400">Vencimento</label><input type="date" x-model="currentItem.courses[course.key].expiration" class="w-full px-2 py-1 border rounded text-xs" :class="isDateExpired(currentItem.courses[course.key].expiration) ? 'border-red-300 bg-red-50 text-red-700' : ''"></div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <h4 class="text-xs font-bold text-slate-400 uppercase">Cursos e Treinamentos</h4>
+                                            <button type="button" @click="addCourse()" class="text-xs bg-brand-100 text-brand-700 px-2 py-1 rounded hover:bg-brand-200">+ Adicionar Curso</button>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <template x-for="(course, index) in currentItem.coursesList" :key="index">
+                                                <div class="flex flex-col sm:flex-row sm:items-end gap-2 p-2 bg-slate-50 rounded border border-slate-200 relative group">
+                                                    <div class="flex-1 w-full">
+                                                        <label class="block text-[10px] text-slate-400 mb-0.5">Nome do Curso</label>
+                                                        <input type="text" x-model="course.name" class="w-full px-2 py-1 border rounded text-xs" placeholder="Nome do Curso">
                                                     </div>
+                                                    <div class="w-full sm:w-32">
+                                                        <label class="block text-[10px] text-slate-400 mb-0.5">Conclusão</label>
+                                                        <input type="date" x-model="course.completion" class="w-full px-2 py-1 border rounded text-xs">
+                                                    </div>
+                                                    <div class="w-full sm:w-32">
+                                                        <label class="block text-[10px] text-slate-400 mb-0.5">Validade</label>
+                                                        <input type="date" x-model="course.expiration" class="w-full px-2 py-1 border rounded text-xs" :class="isDateExpired(course.expiration) ? 'border-red-300 bg-red-50 text-red-700' : ''">
+                                                    </div>
+                                                    <button type="button" @click="removeCourse(index)" class="absolute top-1 right-1 text-slate-400 hover:text-red-500 sm:static sm:mb-1.5">
+                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                    </button>
                                                 </div>
                                             </template>
+                                            <div x-show="currentItem.coursesList && currentItem.coursesList.length === 0" class="text-center text-xs text-slate-400 py-2">
+                                                Nenhum curso cadastrado.
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1226,7 +1320,7 @@
         import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/module.esm.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const customFirebaseConfig = {
             apiKey: "AIzaSyBh4O0---MzHE_F8AjeB3fVk3DxOGVHhdw",
@@ -1259,6 +1353,7 @@
             if(type === 'cost') return `${root}/financeiro/custos_obra`;
             if(type === 'client') return `${root}/geral/clientes`; 
             if(type === 'product') return `${root}/geral/produtos`; 
+            if(type === 'tax') return `${root}/geral/impostos`; 
             return `${root}/geral/itens`;
         }
         
@@ -1290,6 +1385,7 @@
             filterId: '',
             filterService: '',
             filterStatus: '',
+            filterGeneral: '', 
 
             // Modal Logic
             linkToExisting: false,
@@ -1310,6 +1406,7 @@
             projectCosts: [],
             clients: [],
             products_catalog: [],
+            taxes: [],
             
             // Modal State
             showModal: false,
@@ -1361,10 +1458,19 @@
                 return items.sort((a, b) => (b.customId || 0) - (a.customId || 0));
             },
 
-            // --- COMPUTED PARA CLIENTES (ORDENAÇÃO) ---
-            get sortedClients() {
-                return this.clients.sort((a, b) => {
-                    // Ordenação decrescente por código. Se código não for numérico, tenta string
+            // --- NOVOS COMPUTEDS DE FILTRO E ORDENAÇÃO ---
+            get sortedFilteredClients() {
+                let items = this.clients;
+                if(this.filterGeneral) {
+                    const q = this.filterGeneral.toLowerCase();
+                    items = items.filter(c => 
+                        (c.name && c.name.toLowerCase().includes(q)) || 
+                        (c.fantasy && c.fantasy.toLowerCase().includes(q)) || 
+                        (c.code && c.code.toLowerCase().includes(q)) ||
+                        (c.document && c.document.includes(q))
+                    );
+                }
+                return items.sort((a, b) => {
                     const codeA = parseInt(a.code) || 0;
                     const codeB = parseInt(b.code) || 0;
                     if (codeA !== 0 && codeB !== 0) return codeB - codeA;
@@ -1372,9 +1478,33 @@
                 });
             },
 
+            get sortedFilteredProducts() {
+                let items = this.products_catalog;
+                if(this.filterGeneral) {
+                    const q = this.filterGeneral.toLowerCase();
+                    items = items.filter(p => 
+                        (p.description && p.description.toLowerCase().includes(q)) || 
+                        (p.code && p.code.toLowerCase().includes(q)) ||
+                        (p.idCode && p.idCode.toLowerCase().includes(q))
+                    );
+                }
+                return items.sort((a, b) => (b.code || '').localeCompare(a.code || ''));
+            },
+
+            get sortedFilteredTaxes() {
+                let items = this.taxes;
+                if(this.filterGeneral) {
+                    const q = this.filterGeneral.toLowerCase();
+                    items = items.filter(t => 
+                        (t.AP_NCM && t.AP_NCM.toLowerCase().includes(q)) ||
+                        (t.CODIGOID && t.CODIGOID.toLowerCase().includes(q))
+                    );
+                }
+                return items;
+            },
+
             get nextClientCode() {
                 if (this.clients.length === 0) return 1;
-                // Encontra o maior código numérico
                 const max = this.clients.reduce((acc, client) => {
                     const code = parseInt(client.code) || 0;
                     return code > acc ? code : acc;
@@ -1459,7 +1589,7 @@
                     'kanban': 'Quadro de Serviços', 'list': 'Lista de Serviços', 'counter': 'Venda Balcão',
                     'employees': 'Gestão de Funcionários', 'materials': 'Estoque de Matéria Prima',
                     'payables': 'Contas a Pagar', 'invoices': 'Emissão de Nota Fiscal', 'costs': 'Custos de Obra', 'profitability': 'DRE por Obra',
-                    'clients': 'Gestão de Clientes', 'products_mgr': 'Catálogo de Produtos'
+                    'clients': 'Gestão de Clientes', 'products_mgr': 'Catálogo de Produtos', 'taxes': 'Tabela de Impostos'
                 };
                 return map[this.currentView];
             },
@@ -1468,7 +1598,7 @@
                 const map = {
                     'project': 'Orçamento', 'employee': 'Funcionário',
                     'material': 'Item', 'payable': 'Conta', 'cost': 'Custo de Obra',
-                    'client': 'Cliente', 'product': 'Produto'
+                    'client': 'Cliente', 'product': 'Produto', 'tax': 'Imposto'
                 };
                 return map[this.modalType];
             },
@@ -1478,7 +1608,7 @@
                     'kanban': 'Novo Orçamento', 'list': 'Novo Orçamento', 'counter': 'Nova Venda',
                     'employees': 'Novo Funcionário', 'materials': 'Novo Material',
                     'payables': 'Nova Conta', 'costs': 'Novo Custo',
-                    'clients': 'Novo Cliente', 'products_mgr': 'Novo Produto'
+                    'clients': 'Novo Cliente', 'products_mgr': 'Novo Produto', 'taxes': 'Novo Imposto'
                 };
                 return map[this.currentView];
             },
@@ -1548,7 +1678,7 @@
             setView(view) {
                 this.currentView = view;
                 this.sidebarOpen = false;
-                this.filterId = ''; this.filterService = ''; this.filterStatus = '';
+                this.filterId = ''; this.filterService = ''; this.filterStatus = ''; this.filterGeneral = '';
             },
 
             // --- METHODS ---
@@ -1593,9 +1723,9 @@
             },
             
             hasExpiredCourse(emp) {
-                if (!emp.courses) return false;
+                if (!emp.coursesList) return false;
                 const today = new Date().toISOString().split('T')[0];
-                return Object.values(emp.courses).some(c => c.expiration && c.expiration <= today);
+                return emp.coursesList.some(c => c.expiration && c.expiration <= today);
             },
             
             formatPhoneOnImport(raw) {
@@ -1605,24 +1735,91 @@
                 else if (nums.length === 11) return nums.replace(/(\d{2})(\d{5})(\d{4})/, '$1 $2-$3');
                 return raw;
             },
+            
+            // --- Course Management Methods ---
+            addCourse() {
+                if(!this.currentItem.coursesList) this.currentItem.coursesList = [];
+                this.currentItem.coursesList.push({ name: '', completion: '', expiration: '' });
+            },
+            
+            removeCourse(index) {
+                this.currentItem.coursesList.splice(index, 1);
+            },
+
+            // --- EXPORT TO EXCEL ---
+            exportToExcel(type) {
+                let dataToExport = [];
+                let fileName = '';
+
+                if (type === 'clients') {
+                    fileName = 'Clientes_CalhasNorte.xlsx';
+                    dataToExport = this.clients.map(c => ({
+                        'Código': c.code,
+                        'Documento': c.document,
+                        'Nome/Razão': c.name,
+                        'Fantasia': c.fantasy,
+                        'Tipo': c.type,
+                        'Telefone': c.phone,
+                        'Celular': c.cell,
+                        'Email': c.email,
+                        'Endereço': c.address,
+                        'Número': c.number,
+                        'Bairro': c.district,
+                        'Cidade': c.city,
+                        'UF': c.state,
+                        'Data Cadastro': c.registerDate
+                    }));
+                } else if (type === 'products') {
+                    fileName = 'Produtos_CalhasNorte.xlsx';
+                    dataToExport = this.products_catalog.map(p => ({
+                        'Código': p.code,
+                        'ID Aux': p.idCode,
+                        'Descrição': p.description,
+                        'Preço Venda': p.price,
+                        'Grupo': p.group,
+                        'Subgrupo': p.subgroup,
+                        'Modelo': p.model,
+                        'Custo': p.costPrice,
+                        'Fornecedor': p.supplier,
+                        'NCM': p.ncm,
+                        'Imposto': p.taxCode,
+                        'Unidade': p.unit,
+                        'Data Cadastro': p.registerDate
+                    }));
+                } else if (type === 'taxes') {
+                    fileName = 'Impostos_CalhasNorte.xlsx';
+                    dataToExport = this.taxes.map(t => ({
+                        'AP_NCM': t.AP_NCM, 'AR_ESTADO': t.AR_ESTADO, 'AR_ICMS': t.AR_ICMS, 'AR_PIS': t.AR_PIS, 'AR_COFINS': t.AR_COFINS
+                    }));
+                }
+
+                if(dataToExport.length === 0) {
+                    alert("Não há dados para exportar.");
+                    return;
+                }
+
+                const ws = XLSX.utils.json_to_sheet(dataToExport);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Dados");
+                XLSX.writeFile(wb, fileName);
+            },
 
             async handleFileUpload(event, type) {
                 const file = event.target.files[0];
                 if (!file) return;
 
                 const reader = new FileReader();
-                // CORREÇÃO: Utilizando ISO-8859-1 para suportar acentos (padrão Brasil/Excel)
                 reader.onload = async (e) => {
                     const text = e.target.result;
                     const rows = text.split('\n').filter(row => row.trim() !== '');
                     
                     let count = 0;
-                    const colName = type === 'clients' ? 'clientes' : 'produtos';
+                    const colName = type === 'clients' ? 'clientes' : (type === 'products' ? 'produtos' : 'impostos');
                     const today = new Date().toISOString().split('T')[0];
                     
                     for (let i = 1; i < rows.length; i++) { // Pula header
-                        const cols = rows[i].split(';'); // Tenta ponto e vírgula primeiro (comum no Brasil)
-                        const finalCols = cols.length > 1 ? cols : rows[i].split(','); // Se falhar, tenta vírgula
+                        const cols = rows[i].split(';'); 
+                        const finalCols = cols.length > 1 ? cols : rows[i].split(','); 
                         
                         if (finalCols.length < 2) continue;
 
@@ -1651,34 +1848,176 @@
                                 notes: finalCols[15]?.trim() || '',
                                 createdAt: { seconds: Date.now() / 1000 }
                             };
-                        } else {
+                        } else if (type === 'products') {
+                             // Ordem: Cod, ID, Desc, Preço, Grupo, Sub, Model, Custo, Fornec, NCM, Imposto, UN
                             payload = {
                                 code: finalCols[0]?.trim() || '',
-                                description: finalCols[1]?.trim() || '',
-                                price: parseFloat(finalCols[2]?.trim().replace(',','.')) || 0, // Tratamento para decimal PT-BR
-                                group: finalCols[3]?.trim() || '',
-                                subgroup: finalCols[4]?.trim() || '',
-                                model: finalCols[5]?.trim() || '',
-                                costPrice: parseFloat(finalCols[6]?.trim().replace(',','.')) || 0,
-                                lastPurchaseDate: today, 
-                                supplier: finalCols[8]?.trim() || '',
-                                ncm: finalCols[9]?.trim() || '',
+                                idCode: finalCols[1]?.trim() || '',
+                                description: finalCols[2]?.trim() || '',
+                                price: parseFloat(finalCols[3]?.trim().replace(',','.')) || 0,
+                                group: finalCols[4]?.trim() || '',
+                                subgroup: finalCols[5]?.trim() || '',
+                                model: finalCols[6]?.trim() || '',
+                                costPrice: parseFloat(finalCols[7]?.trim().replace(',','.')) || 0,
+                                registerDate: today, 
+                                supplier: finalCols[9]?.trim() || '',
+                                ncm: finalCols[10]?.trim() || '',
+                                taxCode: finalCols[11]?.trim() || '',
+                                unit: finalCols[12]?.trim() || 'UN',
                                 createdAt: { seconds: Date.now() / 1000 }
                             };
+                        } else if (type === 'taxes') {
+                             payload = {
+                                AP_NCM: finalCols[0]?.trim() || '',
+                                AR_COFINS: parseFloat(finalCols[1]?.trim().replace(',','.')) || 0,
+                                AR_CSLL: parseFloat(finalCols[2]?.trim().replace(',','.')) || 0,
+                                AR_ICMS: parseFloat(finalCols[3]?.trim().replace(',','.')) || 0,
+                                AR_IPI: parseFloat(finalCols[4]?.trim().replace(',','.')) || 0,
+                                AR_IR: parseFloat(finalCols[5]?.trim().replace(',','.')) || 0,
+                                AR_ISS: parseFloat(finalCols[6]?.trim().replace(',','.')) || 0,
+                                AR_ST_MVA: parseFloat(finalCols[7]?.trim().replace(',','.')) || 0,
+                                AR_PIS: parseFloat(finalCols[8]?.trim().replace(',','.')) || 0,
+                                AR_BASE_ICMS: parseFloat(finalCols[9]?.trim().replace(',','.')) || 0,
+                                AR_BASE_IPI: parseFloat(finalCols[10]?.trim().replace(',','.')) || 0,
+                                AR_ESTADO: finalCols[11]?.trim() || '',
+                                AR_TIPOCLI: finalCols[12]?.trim() || '',
+                                CODIGOID: finalCols[13]?.trim() || '',
+                                AR_CODIGO_DAP: finalCols[14]?.trim() || '',
+                                AR_OPERACAO: finalCols[15]?.trim() || '',
+                                AR_ST: finalCols[16]?.trim() || '',
+                                AR_ICM_SITT: finalCols[17]?.trim() || '',
+                                AR_IPI_SITT: finalCols[18]?.trim() || '',
+                                AR_COF_SITT: finalCols[19]?.trim() || '',
+                                AR_PIS_SITT: finalCols[20]?.trim() || '',
+                                AR_ISS_SITT: finalCols[21]?.trim() || '',
+                                AR_CFOP: finalCols[22]?.trim() || '',
+                                AR_CSOSN: finalCols[23]?.trim() || '',
+                                AR_RED_ISMST: parseFloat(finalCols[24]?.trim().replace(',','.')) || 0,
+                                AR_FILIAL: finalCols[25]?.trim() || '',
+                                AR_PESSOA: finalCols[26]?.trim() || '',
+                                AR_PER_FCP: parseFloat(finalCols[27]?.trim().replace(',','.')) || 0,
+                                AR_PER_ICMS_I: parseFloat(finalCols[28]?.trim().replace(',','.')) || 0,
+                                AR_PER_ICMS_P: parseFloat(finalCols[29]?.trim().replace(',','.')) || 0,
+                                createdAt: { seconds: Date.now() / 1000 }
+                             };
                         }
 
                         if (db) await addDoc(collection(db, colName), payload);
                         else {
                             if(type === 'clients') this.clients.push({id: Math.random(), ...payload});
-                            else this.products_catalog.push({id: Math.random(), ...payload});
+                            else if(type === 'products') this.products_catalog.push({id: Math.random(), ...payload});
+                            else this.taxes.push({id: Math.random(), ...payload});
                         }
                         count++;
                     }
                     alert(`${count} registros importados com sucesso!`);
                     event.target.value = ''; 
                 };
-                // Forçando leitura em ISO-8859-1
                 reader.readAsText(file, 'ISO-8859-1');
+            },
+            
+            // --- DELETE ALL PRODUCTS FUNCTION ---
+            async deleteAllProducts() {
+                if (!confirm("TEM CERTEZA? Isso excluirá TODOS os produtos cadastrados. Esta ação não pode ser desfeita.")) return;
+                
+                this.isLoading = true;
+                try {
+                    if (db) {
+                        const batchLimit = 500;
+                        const colRef = collection(db, 'produtos');
+                        const snapshot = await getDocs(colRef);
+                        
+                        const total = snapshot.docs.length;
+                        if (total === 0) {
+                            alert("Não há produtos para excluir.");
+                            this.isLoading = false;
+                            return;
+                        }
+
+                        // Firestore batch delete loop
+                        const chunks = [];
+                        let currentChunk = [];
+                        
+                        snapshot.docs.forEach((doc) => {
+                            currentChunk.push(doc.id);
+                            if (currentChunk.length === batchLimit) {
+                                chunks.push(currentChunk);
+                                currentChunk = [];
+                            }
+                        });
+                        if (currentChunk.length > 0) chunks.push(currentChunk);
+
+                        for (const chunk of chunks) {
+                            const batch = writeBatch(db);
+                            chunk.forEach(id => {
+                                batch.delete(doc(db, 'produtos', id));
+                            });
+                            await batch.commit();
+                        }
+                        alert(`${total} produtos excluídos com sucesso.`);
+                    } else {
+                        // Mock Mode
+                        this.products_catalog = [];
+                        alert("Todos os produtos foram excluídos (modo simulação).");
+                    }
+                } catch (e) {
+                    console.error("Error deleting all products:", e);
+                    alert("Erro ao excluir produtos: " + e.message);
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+            
+             // --- DELETE ALL CLIENTS FUNCTION ---
+            async deleteAllClients() {
+                if (!confirm("TEM CERTEZA? Isso excluirá TODOS os clientes cadastrados. Esta ação não pode ser desfeita.")) return;
+                
+                this.isLoading = true;
+                try {
+                    if (db) {
+                        const batchLimit = 500;
+                        const colRef = collection(db, 'clientes');
+                        const snapshot = await getDocs(colRef);
+                        
+                        const total = snapshot.docs.length;
+                        if (total === 0) {
+                            alert("Não há clientes para excluir.");
+                            this.isLoading = false;
+                            return;
+                        }
+
+                        // Firestore batch delete loop
+                        const chunks = [];
+                        let currentChunk = [];
+                        
+                        snapshot.docs.forEach((doc) => {
+                            currentChunk.push(doc.id);
+                            if (currentChunk.length === batchLimit) {
+                                chunks.push(currentChunk);
+                                currentChunk = [];
+                            }
+                        });
+                        if (currentChunk.length > 0) chunks.push(currentChunk);
+
+                        for (const chunk of chunks) {
+                            const batch = writeBatch(db);
+                            chunk.forEach(id => {
+                                batch.delete(doc(db, 'clientes', id));
+                            });
+                            await batch.commit();
+                        }
+                        alert(`${total} clientes excluídos com sucesso.`);
+                    } else {
+                        // Mock Mode
+                        this.clients = [];
+                        alert("Todos os clientes foram excluídos (modo simulação).");
+                    }
+                } catch (e) {
+                    console.error("Error deleting all clients:", e);
+                    alert("Erro ao excluir clientes: " + e.message);
+                } finally {
+                    this.isLoading = false;
+                }
             },
 
             // --- AUTH ---
@@ -1709,7 +2048,7 @@
 
             async logout() {
                 if (auth) await signOut(auth);
-                this.isLoggedIn = false; this.projects = []; this.employees = []; this.materials = []; this.payables = []; this.clients = []; this.products_catalog = [];
+                this.isLoggedIn = false; this.projects = []; this.employees = []; this.materials = []; this.payables = []; this.clients = []; this.products_catalog = []; this.taxes = [];
             },
 
             // --- DATA LOADING ---
@@ -1721,6 +2060,7 @@
                 this.loadCollection('cost', 'projectCosts');
                 this.loadCollection('client', 'clients');
                 this.loadCollection('product', 'products_catalog');
+                this.loadCollection('tax', 'taxes');
             },
 
             loadCollection(type, arrayName) {
@@ -1730,7 +2070,8 @@
                                            type === 'material' ? 'materiais' : 
                                            type === 'cost' ? 'custos_obra' : 
                                            type === 'client' ? 'clientes' :
-                                           type === 'product' ? 'produtos' : 'financeiro';
+                                           type === 'product' ? 'produtos' : 
+                                           type === 'tax' ? 'impostos' : 'financeiro';
                     
                     const q = query(collection(db, collectionName));
                     onSnapshot(q, (snapshot) => {
@@ -1754,7 +2095,8 @@
                     'payables': [{ id: 1, description: 'Conta de Luz', category: 'Fixa', amount: 350.50, dueDate: this.selectedMonth + '-15', isPaid: false }],
                     'projectCosts': [{ id: 1, projectCustomId: 1001, clientName: 'Padaria Central', totalCost: 150.00, createdAt: {seconds: Date.now()/1000}, costs: { meal: 50, transport: 100 } }],
                     'clients': [{ id: 1, code: 'C001', name: 'Padaria Central LTDA', fantasy: 'Padaria Central', document: '12345678000199', phone: '1133334444', email: 'contato@padaria.com', city: 'São Paulo', state: 'SP' }],
-                    'products_catalog': [{ id: 1, code: 'P001', description: 'Calha Moldura 28', price: 45.00, group: 'Calhas', supplier: 'Metalúrgica Aço', costPrice: 25.00 }]
+                    'products_catalog': [{ id: 1, code: 'P001', description: 'Calha Moldura 28', price: 45.00, group: 'Calhas', supplier: 'Metalúrgica Aço', costPrice: 25.00 }],
+                    'taxes': [{ id: 1, AP_NCM: '73089010', AR_ICMS: 18, AR_ESTADO: 'SP', CODIGOID: 'IMP001' }]
                 };
                 if(this[arrayName].length === 0) this[arrayName] = mocks[arrayName] || [];
             },
@@ -1768,7 +2110,9 @@
                 if (this.modalType === 'employee') data.isActive = String(data.isActive) === 'true';
                 if (this.modalType === 'cost') data.totalCost = this.calculatedTotalCost;
 
-                ['value', 'contractValue', 'serviceValue', 'amount', 'salary', 'extraValue', 'cost', 'quantity', 'price', 'costPrice'].forEach(field => {
+                ['value', 'contractValue', 'serviceValue', 'amount', 'salary', 'extraValue', 'cost', 'quantity', 'price', 'costPrice', 
+                 'AR_COFINS', 'AR_CSLL', 'AR_ICMS', 'AR_IPI', 'AR_IR', 'AR_ISS', 'AR_ST_MVA', 'AR_PIS', 'AR_BASE_ICMS', 'AR_BASE_IPI', 'AR_RED_ISMST', 'AR_PER_FCP', 'AR_PER_ICMS_I', 'AR_PER_ICMS_P']
+                 .forEach(field => {
                     if(data[field]) data[field] = parseFloat(data[field]);
                 });
                 
@@ -1788,11 +2132,10 @@
                     data.createdAt = { seconds: Date.now() / 1000 };
                 }
 
-                // Force today's date for new Clients/Products if saving manually
                 if ((this.modalType === 'client' || this.modalType === 'product') && !this.isEditing) {
                     const today = new Date().toISOString().split('T')[0];
                     if(this.modalType === 'client') data.registerDate = today;
-                    if(this.modalType === 'product') data.lastPurchaseDate = today;
+                    if(this.modalType === 'product') data.registerDate = today;
                 }
                 
                 try {
@@ -1802,7 +2145,8 @@
                                                this.modalType === 'material' ? 'materiais' : 
                                                this.modalType === 'cost' ? 'custos_obra' : 
                                                this.modalType === 'client' ? 'clientes' :
-                                               this.modalType === 'product' ? 'produtos' : 'financeiro';
+                                               this.modalType === 'product' ? 'produtos' : 
+                                               this.modalType === 'tax' ? 'impostos' : 'financeiro';
                         
                         const colRef = collection(db, collectionName);
                         
@@ -1834,7 +2178,7 @@
                         }
                     } else {
                         await new Promise(r => setTimeout(r, 500));
-                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts', 'client': 'clients', 'product': 'products_catalog' };
+                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts', 'client': 'clients', 'product': 'products_catalog', 'tax': 'taxes' };
                         const arrName = targetArrayMap[this.modalType];
                         if (this.isEditing) {
                             const idx = this[arrName].findIndex(i => i.id === this.currentItem.id);
@@ -1862,7 +2206,8 @@
                                       this.modalType === 'material' ? 'materiais' :
                                       this.modalType === 'cost' ? 'custos_obra' :
                                       this.modalType === 'client' ? 'clientes' :
-                                      this.modalType === 'product' ? 'produtos' : 'financeiro';
+                                      this.modalType === 'product' ? 'produtos' : 
+                                      this.modalType === 'tax' ? 'impostos' : 'financeiro';
                         
                         if (item) {
                              if (this.currentView === 'employees') colName = 'funcionarios';
@@ -1871,11 +2216,12 @@
                              else if (this.currentView === 'costs') colName = 'custos_obra';
                              else if (this.currentView === 'clients') colName = 'clientes';
                              else if (this.currentView === 'products_mgr') colName = 'produtos';
+                             else if (this.currentView === 'taxes') colName = 'impostos';
                              else colName = 'orcamentos';
                         }
                         await deleteDoc(doc(db, colName, targetId));
                     } else {
-                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts', 'client': 'clients', 'product': 'products_catalog' };
+                        const targetArrayMap = { 'project': 'projects', 'employee': 'employees', 'material': 'materials', 'payable': 'payables', 'cost': 'projectCosts', 'client': 'clients', 'product': 'products_catalog', 'tax': 'taxes' };
                         const arrName = targetArrayMap[this.modalType];
                         this[arrName] = this[arrName].filter(i => i.id !== targetId);
                     }
@@ -1903,6 +2249,7 @@
                 else if(this.currentView === 'costs') this.modalType = 'cost';
                 else if(this.currentView === 'clients') this.modalType = 'client';
                 else if(this.currentView === 'products_mgr') this.modalType = 'product';
+                else if(this.currentView === 'taxes') this.modalType = 'tax';
                 this.showModal = true;
             },
 
@@ -1913,12 +2260,31 @@
                 
                 if (this.currentView === 'employees') {
                     this.modalType = 'employee';
-                    if (!this.currentItem.courses) this.currentItem.courses = { safety: {}, machinery: {}, rappel: {}, measurement: {} };
+                    // Converte formato antigo ou inicializa lista
+                    if (!this.currentItem.coursesList) {
+                         if (this.currentItem.courses) {
+                             // Tenta converter objeto antigo para array
+                             this.currentItem.coursesList = Object.entries(this.currentItem.courses).map(([k, v]) => ({
+                                 name: k === 'safety' ? 'Segurança do Trabalho' : k === 'machinery' ? 'Manuseio de Maquinário' : k === 'rappel' ? 'Rapel' : k === 'measurement' ? 'Medição Predial' : k,
+                                 completion: v.completion || '',
+                                 expiration: v.expiration || ''
+                             }));
+                         } else {
+                             // Default
+                             this.currentItem.coursesList = [
+                                 { name: 'Segurança do Trabalho', completion: '', expiration: '' },
+                                 { name: 'Manuseio de Maquinário', completion: '', expiration: '' },
+                                 { name: 'Rapel', completion: '', expiration: '' },
+                                 { name: 'Medição Predial', completion: '', expiration: '' }
+                             ];
+                         }
+                    }
                 }
                 else if (this.currentView === 'materials') this.modalType = 'material';
                 else if (this.currentView === 'payables') this.modalType = 'payable';
                 else if (this.currentView === 'clients') this.modalType = 'client';
                 else if (this.currentView === 'products_mgr') this.modalType = 'product';
+                else if (this.currentView === 'taxes') this.modalType = 'tax';
                 else if (this.currentView === 'costs') {
                     this.modalType = 'cost';
                     this.costChecks = {
@@ -1970,19 +2336,26 @@
                     this.currentItem = { serviceType: 'Calhas', status: 'lead', date: today, budgetDate: today };
                 }
                 if(this.currentView === 'materials') this.currentItem = { unit: 'un', type: 'Chapas', status: 'Em Estoque', orderDate: new Date().toISOString().split('T')[0] };
-                if(this.currentView === 'employees') this.currentItem = { isActive: true, courses: { safety: {}, machinery: {}, rappel: {}, measurement: {} } };
-                if(this.currentView === 'payables') this.currentItem = { category: 'Fixa', isPaid: false, dueDate: this.selectedMonth + '-10', repeatCount: 1, isAuto: false };
-                
-                // DATA SEMPRE HOJE PARA NOVOS CLIENTES E PRODUTOS + CÓDIGO SEQUENCIAL
-                if(this.currentView === 'clients') {
+                if(this.currentView === 'employees') {
                     this.currentItem = { 
-                        type: 'Fisica', 
-                        registerDate: new Date().toISOString().split('T')[0],
-                        code: this.nextClientCode 
+                        isActive: true, 
+                        coursesList: [
+                             { name: 'Segurança do Trabalho', completion: '', expiration: '' },
+                             { name: 'Manuseio de Maquinário', completion: '', expiration: '' },
+                             { name: 'Rapel', completion: '', expiration: '' },
+                             { name: 'Medição Predial', completion: '', expiration: '' }
+                        ]
                     };
                 }
+                if(this.currentView === 'payables') this.currentItem = { category: 'Fixa', isPaid: false, dueDate: this.selectedMonth + '-10', repeatCount: 1, isAuto: false };
+                if(this.currentView === 'clients') {
+                    this.currentItem = { type: 'Fisica', registerDate: new Date().toISOString().split('T')[0], code: this.nextClientCode };
+                }
                 if(this.currentView === 'products_mgr') {
-                    this.currentItem = { lastPurchaseDate: new Date().toISOString().split('T')[0] };
+                    this.currentItem = { registerDate: new Date().toISOString().split('T')[0], unit: 'UN' };
+                }
+                if(this.currentView === 'taxes') {
+                    this.currentItem = {};
                 }
                 
                 if(this.currentView === 'costs') {
@@ -2067,6 +2440,16 @@
                 if(bill.isPaid) return false;
                 const today = new Date().toISOString().split('T')[0];
                 return bill.dueDate < today;
+            },
+            
+            // --- Course Management Methods ---
+            addCourse() {
+                if(!this.currentItem.coursesList) this.currentItem.coursesList = [];
+                this.currentItem.coursesList.push({ name: '', completion: '', expiration: '' });
+            },
+            
+            removeCourse(index) {
+                this.currentItem.coursesList.splice(index, 1);
             }
         });
 
